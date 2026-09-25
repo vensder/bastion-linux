@@ -17,3 +17,56 @@ modules:
   - type: script
     scripts:
       - lock-container-policy.sh
+
+  # --- Phase 2: attack surface -------------------------------------------
+
+  # No auto-remove: only these packages go. Check the build log for anything
+  # else dnf pulls out because it depends on them.
+  - type: dnf
+    remove:
+      auto-remove: false
+      packages:
+        - openssh-server           # also removes the sshd-vsock / sshd-unix-local sockets
+        - gnome-software
+        - gnome-software-rpm-ostree
+
+  # resolved: no LLMNR/mDNS. coredump: never write wallet memory to disk.
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  # Default-deny inbound (the FedoraWorkstation zone allows 1025-65535 in).
+  - type: script
+    scripts:
+      - firewalld-default-drop.sh
+
+  - type: systemd
+    system:
+      masked:
+        - cups.service
+        - cups.socket
+        - cups.path
+        - cups-browsed.service
+        - avahi-daemon.service
+        - avahi-daemon.socket
+        - ModemManager.service
+        - geoclue.service
+        - bluetooth.service
+        - systemd-importd.socket   # downloads disk images from the network
+        - systemd-coredump.socket
+    user:
+      masked:
+        - evolution-source-registry.service
+        - evolution-addressbook-factory.service
+        - evolution-calendar-factory.service
+        - evolution-alarm-notify.service
+        - localsearch-3.service
+        - gvfs-afc-volume-monitor.service
+        - gvfs-gphoto2-volume-monitor.service
+        - gvfs-mtp-volume-monitor.service
+        - gvfs-goa-volume-monitor.service
+        - mpris-proxy.service
+        - org.gnome.SettingsDaemon.Sharing.service
+        - org.gnome.SettingsDaemon.Wwan.service
+        - org.gnome.SettingsDaemon.PrintNotifications.service
