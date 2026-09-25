@@ -1,5 +1,7 @@
-ColdVault OS
+# ColdVault OS
+
     Fedora Atomic
+    
     + hardened desktop
     + Bitcoin / crypto wallet tools
     + hardware wallet support

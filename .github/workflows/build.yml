@@ -1,0 +1,25 @@
+name: Build ColdVault OS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  bluebuild:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Build Custom Image
+        uses: blue-build/github-action@v1
+        with:
+          recipe: recipe: recipes/recipe.yml
+          cosign_private_key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          pr_event_number: ${{ github.event.number }}
+          registry_token: ${{ github.token }}
