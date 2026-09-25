@@ -75,6 +75,51 @@ sudo virsh pool-refresh default
 Then in virt-manager: New VM, "Import existing disk image", firmware UEFI.
 After the first boot, do step 2 of "Install / rebase" to switch to the signed transport.
 
+## Build an installer ISO
+
+Same tool, same prerequisites (rootful Podman, the Ubuntu AppArmor step above).
+
+**Warning:** the ISO is an unattended Anaconda installer. It installs to the
+first disk it finds and wipes it without asking. Boot it only in a VM with a
+blank disk, or on a machine whose disk you mean to erase.
+
+Use a separate `config-iso.toml` with only the user. The installer lays out the
+whole disk itself, so leave out the `[[customizations.filesystem]]` block:
+
+```toml
+[[customizations.user]]
+name = "tester"
+password = "changeme"
+groups = ["wheel"]
+```
+
+Build:
+
+```sh
+mkdir -p output
+sudo podman run --rm -it --privileged --pull=newer \
+  --security-opt label=type:unconfined_t \
+  --security-opt apparmor=unconfined \
+  -v ./config-iso.toml:/config.toml:ro \
+  -v ./output:/output \
+  -v /var/lib/containers/storage:/var/lib/containers/storage \
+  quay.io/centos-bootc/bootc-image-builder:latest \
+  --type anaconda-iso --rootfs btrfs \
+  ghcr.io/OWNER/bastion-linux:latest
+# result: output/bootiso/install.iso
+```
+
+Test in a VM with a blank 40 GB disk:
+
+```sh
+sudo mv output/bootiso/install.iso /var/lib/libvirt/images/bastion-install.iso
+sudo virt-install --name bastion-iso --memory 4096 --vcpus 2 \
+  --disk size=40 --cdrom /var/lib/libvirt/images/bastion-install.iso \
+  --os-variant fedora-unknown --boot uefi --graphics spice
+```
+
+After installing, do step 2 of "Install / rebase" to switch to the signed transport.
+
 ## Supply chain
 
 - Image is signed in CI with the key in the `release` environment (main branch only).
