@@ -97,7 +97,9 @@ Build:
 
 ```sh
 mkdir -p output
-sudo podman run --rm -it --privileged --pull=newer \
+# --net=host: the ISO build downloads installer RPMs from Fedora mirrors,
+# and DNS often fails on podman's default bridge (e.g. Ubuntu + systemd-resolved).
+sudo podman run --rm -it --privileged --pull=newer --net=host \
   --security-opt label=type:unconfined_t \
   --security-opt apparmor=unconfined \
   -v ./config-iso.toml:/config.toml:ro \
