@@ -1,25 +1,46 @@
-name: Build ColdVault OS
+name: Build Bastion Linux
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths-ignore: ["**.md"]
   pull_request:
+  schedule:
+    - cron: "17 14 * * *"   # daily, ~03:17 NZ: pick up Fedora security updates
   workflow_dispatch:
 
-jobs:
-  bluebuild:
-    runs-on: ubuntu-latest
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+permissions: {}
+
+jobs:
+  # PRs: build only. No signing key, nothing pushed.
+  pr-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: blue-build/github-action@c295af864f2802fc6aea227507af43d35823db81 # v1.13.0
+        with:
+          recipe: recipe.yml
+          push: false
+          verify_install: true
+
+  # main / schedule / manual: build, sign, push.
+  release:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    environment: release   # COSIGN_PRIVATE_KEY lives here, restricted to main
     permissions:
       contents: read
       packages: write
-
     steps:
-      - name: Build Custom Image
-        uses: blue-build/github-action@v1
+      - uses: blue-build/github-action@c295af864f2802fc6aea227507af43d35823db81 # v1.13.0
         with:
           recipe: recipe.yml
           cosign_private_key: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          pr_event_number: ${{ github.event.number }}
           registry_token: ${{ github.token }}
+          verify_install: true

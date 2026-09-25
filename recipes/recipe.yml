@@ -1,11 +1,19 @@
 ---
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 
-name: coldvault-os
-description: A security-focused Fedora Atomic desktop for cryptocurrency wallets and related tools.
+name: bastion-linux
+description: Hardened Fedora Atomic desktop for self-custody cryptocurrency wallets.
 
+# Tracks the Fedora 44 tag; the daily CI rebuild picks up upstream security fixes.
 base-image: quay.io/fedora-ostree-desktops/silverblue
 image-version: 44
 
 modules:
+  # Installs cosign.pub to /etc/pki/containers/ and adds a sigstoreSigned
+  # entry for this image to /etc/containers/policy.json.
   - type: signing
+
+  # Must run after `signing`: rejects every registry path not listed explicitly.
+  - type: script
+    scripts:
+      - lock-container-policy.sh
