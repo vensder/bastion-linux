@@ -5,8 +5,9 @@ on:
     branches: [main]
     paths-ignore: ["**.md"]
   pull_request:
-  schedule:
-    - cron: "17 14 * * *"   # daily, ~03:17 NZ: pick up Fedora security updates
+  # Disabled while testing. Re-enable for daily Fedora security updates.
+  # schedule:
+  #   - cron: "17 14 * * *"   # daily, ~03:17 NZ
   workflow_dispatch:
 
 concurrency:
