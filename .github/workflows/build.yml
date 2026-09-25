@@ -19,7 +19,7 @@ jobs:
       - name: Build Custom Image
         uses: blue-build/github-action@v1
         with:
-          recipe: recipes/recipe.yml
+          recipe: recipe.yml
           cosign_private_key: ${{ secrets.COSIGN_PRIVATE_KEY }}
           pr_event_number: ${{ github.event.number }}
           registry_token: ${{ github.token }}
