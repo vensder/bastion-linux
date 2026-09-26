@@ -1,8 +1,8 @@
-name: Build secureblue
+name: Build GNOME minimal
 
-# Runs when anything this variant uses changes: its own recipes/secureblue/,
-# files/secureblue/ and files/scripts/secureblue/, plus every shared file. The '!' lines
-# skip other variants' directories, docs and ISO-only files.
+# Runs when anything this variant uses changes: its own recipes/gnome-minimal/,
+# files/gnome-minimal/ and files/scripts/gnome-minimal/, plus every shared file. The '!' lines
+# skip other variants' directories, docs, ISO-only and local-build files.
 # Adding a variant: also exclude its directories here.
 on:
   push:
@@ -20,6 +20,7 @@ on:
       - '!**.md'
       - '!LICENSE'
       - '!iso/**'
+      - '!local-build/**'
       - '!.github/workflows/build-iso.yml'
   pull_request:
     paths:
@@ -35,6 +36,7 @@ on:
       - '!**.md'
       - '!LICENSE'
       - '!iso/**'
+      - '!local-build/**'
       - '!.github/workflows/build-iso.yml'
   # Disabled while testing. Re-enable for daily Fedora security updates.
   # schedule:
@@ -55,4 +57,4 @@ jobs:
       packages: write
     secrets: inherit
     with:
-      recipe: secureblue/recipe.yml
+      recipe: gnome-minimal/recipe.yml

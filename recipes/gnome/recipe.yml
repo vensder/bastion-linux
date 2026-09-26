@@ -11,4 +11,5 @@ image-version: 44
 modules:
   - from-file: shared/common.yml
   - from-file: shared/librewolf.yml
+  - from-file: shared/gnome-lockdown.yml
   - from-file: gnome/modules.yml

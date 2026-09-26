@@ -38,20 +38,20 @@ Built with BlueBuild, signed with cosign, published to GHCR.
 | Image | Base | Recipe |
 |---|---|---|
 | `ghcr.io/OWNER/bastion-linux` | Fedora Silverblue (GNOME) | `recipes/gnome/` |
-| `ghcr.io/OWNER/bastion-linux-secureblue` | secureblue `silverblue-main-hardened` (GNOME) | `recipes/secureblue/` |
+| `ghcr.io/OWNER/bastion-linux-gnome-minimal` | `fedora-bootc` (no desktop), minimal GNOME | `recipes/gnome-minimal/` |
 | `ghcr.io/OWNER/bastion-linux-minimal` | `fedora-bootc` (no desktop), LXQt on labwc | `recipes/minimal/` |
 
 **GNOME** is the reference variant. GNOME does not expose screen capture, clipboard
 reading or input injection to ordinary apps; wlroots compositors (labwc, Sway) do,
 which matters for clipboard address-swapping malware.
 
-**secureblue (experimental)** builds on [secureblue](https://github.com/secureblue/secureblue)'s
-hardened Silverblue (hardened_malloc, kernel and sysctl hardening, unprivileged user
-namespaces off, Trivalent browser) and adds the shared Bastion layer and Electrum.
-LibreWolf is not added: its bubblewrap sandbox needs unprivileged user namespaces.
-secureblue does not officially support derived images.
+**GNOME minimal (experimental)** starts from `fedora-bootc` and installs an explicit
+GNOME package list with weak dependencies off: GDM, GNOME Shell and Settings, ptyxis
+terminal, NetworkManager, fonts and icons. Same GNOME isolation model and lockdown as
+the gnome variant (shared in `recipes/shared/gnome-lockdown.yml`), far fewer packages;
+the build log prints the package count. No file manager yet. Updates: `sudo bootc upgrade`.
 
-**Minimal (experimental)** starts from `fedora-bootc`, which has no desktop, and adds
+**Minimal (experimental, LXQt)** starts from `fedora-bootc`, which has no desktop, and adds
 an explicit package list with weak dependencies off: greetd + tuigreet (login, greeter
 runs as an unprivileged user), LXQt Wayland session on labwc, pcmanfm-qt, foot,
 swaylock/swayidle (locks after 5 minutes idle; "Lock screen" in the menu),
@@ -65,7 +65,7 @@ In the commands below, use the image name of the variant you want.
 ## Repository layout and CI
 
 ```
-recipes/<variant>/recipe.yml   one directory per variant (gnome, secureblue, minimal)
+recipes/<variant>/recipe.yml   one directory per variant (gnome, gnome-minimal, minimal)
 recipes/<variant>/*.yml        modules used only by that variant
 recipes/shared/*.yml           modules used by several variants
 files/<variant>/               file trees copied only into that variant
@@ -73,11 +73,12 @@ files/scripts/<variant>/       scripts used only by that variant
 files/system/, files/scripts/  shared files and scripts
 files/keys/                    pinned release keys
 iso/config.toml                installer ISO config
+local-build/                   scripts to build a qcow2 or ISO on your machine
 ```
 
 Each variant has its own workflow, `.github/workflows/build-<variant>.yml`, which uses
 GitHub's `paths` filter: it runs for any change except other variants' directories,
-docs (`*.md`, `LICENSE`) and ISO-only files. So a change under `recipes/<v>/`,
+docs (`*.md`, `LICENSE`), ISO-only files and `local-build/`. So a change under `recipes/<v>/`,
 `files/<v>/` or `files/scripts/<v>/` rebuilds only `<v>`; a shared change (shared
 modules, scripts, keys, `cosign.pub`, `_build-variant.yml`) rebuilds all variants.
 The build steps themselves are in one reusable workflow, `_build-variant.yml`.
@@ -108,7 +109,7 @@ your own key and your own build, not someone else's.
    Then delete `cosign.key` from disk, or move it to offline storage.
 5. **Build.** Push to `main` or run each variant's workflow manually (Actions -> Build
    <variant> -> Run workflow). Images appear under your account's Packages as
-   `ghcr.io/<your-account>/bastion-linux`, `...-secureblue` and `...-minimal`.
+   `ghcr.io/<your-account>/bastion-linux`, `...-gnome-minimal` and `...-minimal`.
 6. **Package visibility.** New GHCR packages are private. Either make them public
    (package page -> Package settings -> Change visibility) or run
    `sudo podman login ghcr.io` before pulling.
@@ -132,6 +133,26 @@ systemctl reboot
 ```
 
 Check: `rpm-ostree status` must show `ostree-image-signed:docker://...` for the booted deployment.
+
+## Local build scripts
+
+`local-build/` wraps the qcow2 and ISO commands below. Log in to GHCR first if the
+package is private (`sudo podman login ghcr.io`); the scripts do not. They unload
+Ubuntu's `bwrap-userns-restrict` AppArmor profile for the build and load it back on
+exit.
+
+```sh
+# qcow2 for a test VM: asks for a VM username and password
+./local-build/build-qcow2.sh <owner> <image> [tag]
+# -> /var/lib/libvirt/images/<image>-<tag>-<date>.qcow2
+
+# interactive installer ISO (iso/config.toml)
+./local-build/build-iso.sh <owner> <image> [tag]
+# -> /var/lib/libvirt/iso/<image>-<tag>-<date>.iso
+
+# example
+./local-build/build-iso.sh vensder bastion-linux-gnome-minimal
+```
 
 ## Build a qcow2 for a test VM
 

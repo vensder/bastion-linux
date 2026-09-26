@@ -1,0 +1,36 @@
+---
+# GNOME lockdown shared by the gnome and gnome-minimal variants.
+# Masking units that do not exist is harmless.
+modules:
+  # Parental Controls app. `rpm -e` (not dnf) so the build fails loudly
+  # instead of silently removing anything that depends on it.
+  - type: script
+    snippets:
+      - "if rpm -q --quiet malcontent-control; then rpm -e malcontent-control; fi"
+
+  # Remote desktop / remote login (RDP, VNC): masked, so the Settings toggles
+  # cannot start them. The firewall drop zone would block inbound anyway.
+  - type: systemd
+    system:
+      masked:
+        - gnome-remote-desktop.service
+        - gnome-remote-desktop-configuration.service
+        - gnome-remote-desktop-pcscd.service
+    user:
+      masked:
+        - gnome-remote-desktop.service
+        - gnome-remote-desktop-headless.service
+        - gnome-remote-desktop-handover.service
+        - evolution-source-registry.service
+        - evolution-addressbook-factory.service
+        - evolution-calendar-factory.service
+        - evolution-alarm-notify.service
+        - localsearch-3.service
+        - gvfs-afc-volume-monitor.service
+        - gvfs-gphoto2-volume-monitor.service
+        - gvfs-mtp-volume-monitor.service
+        - gvfs-goa-volume-monitor.service
+        - mpris-proxy.service
+        - org.gnome.SettingsDaemon.Sharing.service
+        - org.gnome.SettingsDaemon.Wwan.service
+        - org.gnome.SettingsDaemon.PrintNotifications.service

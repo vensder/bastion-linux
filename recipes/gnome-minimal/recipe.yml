@@ -1,0 +1,47 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+
+# EXPERIMENTAL. GNOME built up from fedora-bootc (no desktop) with an explicit
+# package list, instead of trimming Silverblue down. Same GNOME isolation model
+# as the gnome variant (no screen capture / clipboard / input injection for
+# ordinary apps), far fewer packages.
+name: bastion-linux-gnome-minimal
+description: Bastion Linux, minimal GNOME (fedora-bootc base, explicit package list).
+
+base-image: quay.io/fedora/fedora-bootc
+image-version: 44
+
+modules:
+  # Every package added on top of fedora-bootc. Weak dependencies are off, so
+  # nothing arrives unless something here hard-requires it.
+  - type: dnf
+    install:
+      install-weak-deps: false
+      packages:
+        # login and shell (GDM is needed for GNOME's lock screen)
+        - gdm
+        - gnome-shell
+        - gnome-session
+        - gnome-settings-daemon
+        - gnome-control-center
+        - gnome-keyring            # stores Wi-Fi passwords
+        - ptyxis                   # terminal
+        - adwaita-icon-theme
+        - dejavu-sans-fonts
+        - dejavu-sans-mono-fonts
+        - mesa-dri-drivers
+        # network
+        - NetworkManager
+        - NetworkManager-wifi
+        # needed by the shared hardening and app scripts
+        - firewalld
+        - jq
+        - curl
+        - gnupg2
+        - bubblewrap
+        - xdg-user-dirs
+
+  - from-file: shared/common.yml
+  - from-file: shared/librewolf.yml
+  - from-file: shared/gnome-lockdown.yml
+  - from-file: gnome-minimal/modules.yml

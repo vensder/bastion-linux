@@ -2,17 +2,17 @@ name: Build GNOME
 
 # Runs when anything this variant uses changes: its own recipes/gnome/,
 # files/gnome/ and files/scripts/gnome/, plus every shared file. The '!' lines
-# skip other variants' directories, docs and ISO-only files.
+# skip other variants' directories, docs, ISO-only and local-build files.
 # Adding a variant: also exclude its directories here.
 on:
   push:
     branches: [main]
     paths:
       - '**'
-      - '!recipes/secureblue/**'
-      - '!files/secureblue/**'
-      - '!files/scripts/secureblue/**'
-      - '!.github/workflows/build-secureblue.yml'
+      - '!recipes/gnome-minimal/**'
+      - '!files/gnome-minimal/**'
+      - '!files/scripts/gnome-minimal/**'
+      - '!.github/workflows/build-gnome-minimal.yml'
       - '!recipes/minimal/**'
       - '!files/minimal/**'
       - '!files/scripts/minimal/**'
@@ -20,14 +20,15 @@ on:
       - '!**.md'
       - '!LICENSE'
       - '!iso/**'
+      - '!local-build/**'
       - '!.github/workflows/build-iso.yml'
   pull_request:
     paths:
       - '**'
-      - '!recipes/secureblue/**'
-      - '!files/secureblue/**'
-      - '!files/scripts/secureblue/**'
-      - '!.github/workflows/build-secureblue.yml'
+      - '!recipes/gnome-minimal/**'
+      - '!files/gnome-minimal/**'
+      - '!files/scripts/gnome-minimal/**'
+      - '!.github/workflows/build-gnome-minimal.yml'
       - '!recipes/minimal/**'
       - '!files/minimal/**'
       - '!files/scripts/minimal/**'
@@ -35,6 +36,7 @@ on:
       - '!**.md'
       - '!LICENSE'
       - '!iso/**'
+      - '!local-build/**'
       - '!.github/workflows/build-iso.yml'
   # Disabled while testing. Re-enable for daily Fedora security updates.
   # schedule:

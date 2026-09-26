@@ -1,0 +1,15 @@
+---
+# Boot setup for the gnome-minimal variant (gnome-minimal/recipe.yml).
+modules:
+  - type: systemd
+    system:
+      enabled:
+        - gdm.service
+
+  - type: script
+    snippets:
+      # Boot to the graphical login instead of a text console.
+      - "systemctl set-default graphical.target"
+      # For comparing with the other variants in the build log.
+      - "echo \"Installed packages: $(rpm -qa | wc -l)\""
+      - "echo \"X server packages: $(rpm -qa 'xorg-x11-server*' | tr '\\n' ' ')\""
