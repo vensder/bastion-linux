@@ -10,9 +10,25 @@ modules:
         - gnome-software
         - gnome-software-rpm-ostree
 
+  # Parental Controls app. `rpm -e` (not dnf) so the build fails loudly
+  # instead of silently removing anything that depends on it.
+  - type: script
+    snippets:
+      - "if rpm -q --quiet malcontent-control; then rpm -e malcontent-control; fi"
+
+  # Remote desktop / remote login (RDP, VNC): masked, so the Settings toggles
+  # cannot start them. The firewall drop zone would block inbound anyway.
   - type: systemd
+    system:
+      masked:
+        - gnome-remote-desktop.service
+        - gnome-remote-desktop-configuration.service
+        - gnome-remote-desktop-pcscd.service
     user:
       masked:
+        - gnome-remote-desktop.service
+        - gnome-remote-desktop-headless.service
+        - gnome-remote-desktop-handover.service
         - evolution-source-registry.service
         - evolution-addressbook-factory.service
         - evolution-calendar-factory.service
