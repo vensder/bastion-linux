@@ -3,6 +3,20 @@
 Hardened Fedora Atomic (Silverblue) desktop for self-custody cryptocurrency wallets.
 Built with BlueBuild, signed with cosign, published to GHCR.
 
+## Variants
+
+| Image | Base | Recipe |
+|---|---|---|
+| `ghcr.io/OWNER/bastion-linux` | Fedora Silverblue (GNOME) | `recipes/recipe-gnome.yml` |
+| `ghcr.io/OWNER/bastion-linux-sway` | Fedora Sway Atomic | `recipes/recipe-sway.yml` |
+
+Shared hardening is in `recipes/common.yml`; per-desktop trimming in `recipes/gnome.yml`.
+CI builds every variant in parallel. In the commands below, use the image name of the
+variant you want.
+
+Every variant trusts all images under `ghcr.io/OWNER/` signed with our key, so a
+machine can switch variants with `ostree-image-signed:` directly, no unverified hop.
+
 ## Install / rebase
 
 From any Fedora Atomic desktop. Replace `OWNER` with the GitHub account.

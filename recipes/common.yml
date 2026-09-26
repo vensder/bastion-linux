@@ -1,0 +1,44 @@
+---
+# Hardening shared by every Bastion Linux variant.
+modules:
+  # Installs cosign.pub to /etc/pki/containers/ and adds a sigstoreSigned
+  # entry for this image to /etc/containers/policy.json.
+  - type: signing
+
+  # Must run after `signing`: trusts only our signed images, rejects the rest.
+  - type: script
+    scripts:
+      - lock-container-policy.sh
+
+  # openssh-server: also removes the sshd-vsock / sshd-unix-local sockets.
+  # Only if installed, since not every base image ships it.
+  - type: script
+    snippets:
+      - "if rpm -q --quiet openssh-server; then dnf5 -y remove --setopt=clean_requirements_on_remove=False openssh-server; fi"
+
+  # resolved: no LLMNR/mDNS. coredump + sysctl: never write process memory to disk.
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  # Default-deny inbound.
+  - type: script
+    scripts:
+      - firewalld-default-drop.sh
+
+  # Masking a unit that does not exist is harmless, so this list is shared.
+  - type: systemd
+    system:
+      masked:
+        - cups.service
+        - cups.socket
+        - cups.path
+        - cups-browsed.service
+        - avahi-daemon.service
+        - avahi-daemon.socket
+        - ModemManager.service
+        - geoclue.service
+        - bluetooth.service
+        - systemd-importd.socket   # downloads disk images from the network
+        - systemd-coredump.socket

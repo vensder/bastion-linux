@@ -1,0 +1,28 @@
+---
+# GNOME-only trimming (Silverblue base).
+modules:
+  # No auto-remove: only these packages go. Check the build log for anything
+  # else dnf pulls out because it depends on them.
+  - type: dnf
+    remove:
+      auto-remove: false
+      packages:
+        - gnome-software
+        - gnome-software-rpm-ostree
+
+  - type: systemd
+    user:
+      masked:
+        - evolution-source-registry.service
+        - evolution-addressbook-factory.service
+        - evolution-calendar-factory.service
+        - evolution-alarm-notify.service
+        - localsearch-3.service
+        - gvfs-afc-volume-monitor.service
+        - gvfs-gphoto2-volume-monitor.service
+        - gvfs-mtp-volume-monitor.service
+        - gvfs-goa-volume-monitor.service
+        - mpris-proxy.service
+        - org.gnome.SettingsDaemon.Sharing.service
+        - org.gnome.SettingsDaemon.Wwan.service
+        - org.gnome.SettingsDaemon.PrintNotifications.service

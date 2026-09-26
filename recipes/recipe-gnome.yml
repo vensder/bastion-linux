@@ -1,0 +1,13 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+
+# Name kept as plain "bastion-linux" so existing installs keep updating.
+name: bastion-linux
+description: Bastion Linux, GNOME variant (Fedora Silverblue base).
+
+base-image: quay.io/fedora-ostree-desktops/silverblue
+image-version: 44
+
+modules:
+  - from-file: common.yml
+  - from-file: gnome.yml

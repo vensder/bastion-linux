@@ -21,12 +21,16 @@ jobs:
   pr-check:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false   # one variant failing must not cancel the other
+      matrix:
+        recipe: [recipe-gnome.yml, recipe-sway.yml]
     permissions:
       contents: read
     steps:
       - uses: blue-build/github-action@c295af864f2802fc6aea227507af43d35823db81 # v1.13.0
         with:
-          recipe: recipe.yml
+          recipe: ${{ matrix.recipe }}
           push: false
           verify_install: true
 
@@ -35,13 +39,17 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     environment: release   # COSIGN_PRIVATE_KEY lives here, restricted to main
+    strategy:
+      fail-fast: false   # one variant failing must not cancel the other
+      matrix:
+        recipe: [recipe-gnome.yml, recipe-sway.yml]
     permissions:
       contents: read
       packages: write
     steps:
       - uses: blue-build/github-action@c295af864f2802fc6aea227507af43d35823db81 # v1.13.0
         with:
-          recipe: recipe.yml
+          recipe: ${{ matrix.recipe }}
           cosign_private_key: ${{ secrets.COSIGN_PRIVATE_KEY }}
           registry_token: ${{ github.token }}
           verify_install: true

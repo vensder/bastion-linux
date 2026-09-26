@@ -11,6 +11,11 @@ if [ ! -f "$CONF" ] && [ -f /usr/lib/firewalld/firewalld.conf ]; then
     cp /usr/lib/firewalld/firewalld.conf "$CONF"
 fi
 
+if [ ! -f "$CONF" ]; then
+    echo "ERROR: firewalld config not found; is firewalld installed in the base image?" >&2
+    exit 1
+fi
+
 if grep -q '^DefaultZone=' "$CONF"; then
     sed -i 's/^DefaultZone=.*/DefaultZone=drop/' "$CONF"
 else

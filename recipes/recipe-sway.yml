@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+
+name: bastion-linux-sway
+description: Bastion Linux, Sway variant (Fedora Sway Atomic base).
+
+base-image: quay.io/fedora-ostree-desktops/sway-atomic
+image-version: 44
+
+modules:
+  - from-file: common.yml
+  # Sway-specific trimming goes here once we have a baseline from a test VM.
