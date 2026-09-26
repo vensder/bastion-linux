@@ -25,6 +25,10 @@ mkdir -p "$DOWNLOADS"
 DOWNLOADS=$(readlink -f "$DOWNLOADS")
 USER_DIRS="$HOME_REAL/.config/user-dirs.dirs"
 
+# DNS: /etc/resolv.conf is often a symlink into /run (systemd-resolved or
+# NetworkManager); expose only the file it points to.
+RESOLV_CONF=$(readlink -f /etc/resolv.conf)
+
 # If the browser itself lives outside /usr, make that directory visible too.
 BIN=""
 for candidate in /usr/bin/librewolf /usr/share/librewolf/librewolf; do
@@ -45,7 +49,7 @@ exec bwrap \
     --symlink usr/lib /lib --symlink usr/lib64 /lib64 \
     --ro-bind /etc /etc \
     --ro-bind /sys /sys \
-    --ro-bind-try /run/systemd/resolve /run/systemd/resolve \
+    --ro-bind-try "$RESOLV_CONF" "$RESOLV_CONF" \
     --proc /proc \
     --dev /dev \
     --tmpfs /dev/shm \

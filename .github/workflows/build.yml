@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false   # one variant failing must not cancel the other
       matrix:
-        recipe: [recipe-gnome.yml, recipe-sway.yml]
+        recipe: [recipe-gnome.yml, recipe-sway.yml, recipe-minimal.yml]
     permissions:
       contents: read
     steps:
@@ -42,7 +42,7 @@ jobs:
     strategy:
       fail-fast: false   # one variant failing must not cancel the other
       matrix:
-        recipe: [recipe-gnome.yml, recipe-sway.yml]
+        recipe: [recipe-gnome.yml, recipe-sway.yml, recipe-minimal.yml]
     permissions:
       contents: read
       packages: write

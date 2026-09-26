@@ -1,0 +1,10 @@
+#!/bin/sh
+# Session started by greetd/tuigreet. Wayland only: toolkits must not look for X11.
+export XDG_SESSION_TYPE=wayland
+export XDG_CURRENT_DESKTOP=sway
+export QT_QPA_PLATFORM=wayland
+export GDK_BACKEND=wayland
+export MOZ_ENABLE_WAYLAND=1
+export SDL_VIDEODRIVER=wayland
+unset DISPLAY
+exec sway

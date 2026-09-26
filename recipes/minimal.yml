@@ -1,0 +1,19 @@
+---
+# Session setup for the minimal variant (recipe-minimal.yml).
+modules:
+  # /etc/sway/config and /usr/bin/bastion-session.
+  - type: files
+    files:
+      - source: minimal
+        destination: /
+
+  - type: script
+    scripts:
+      - configure-greetd.sh
+      # Last: fails the build if an X server got in; prints the package count.
+      - check-minimal.sh
+
+  - type: systemd
+    system:
+      enabled:
+        - greetd.service

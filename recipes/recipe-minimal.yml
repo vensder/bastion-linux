@@ -1,0 +1,44 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+
+# EXPERIMENTAL. Built up from fedora-bootc (no desktop) with an explicit
+# package list: greetd + tuigreet login, Sway session, no X server.
+name: bastion-linux-minimal
+description: Bastion Linux, minimal variant (fedora-bootc base, greetd + Sway, no X server).
+
+base-image: quay.io/fedora/fedora-bootc
+image-version: 44
+
+modules:
+  # Every package added on top of fedora-bootc. Weak dependencies are off, so
+  # nothing arrives unless something here hard-requires it.
+  - type: dnf
+    install:
+      install-weak-deps: false
+      packages:
+        # login: greetd runs the greeter as an unprivileged user
+        - greetd
+        - greetd-selinux
+        - tuigreet
+        # session: compositor, lock screen, terminal
+        - sway
+        - swaylock
+        - swayidle
+        - foot
+        - mesa-dri-drivers
+        - dejavu-sans-fonts
+        - dejavu-sans-mono-fonts
+        # network (nmtui for Wi-Fi setup)
+        - NetworkManager
+        - NetworkManager-wifi
+        - NetworkManager-tui
+        # needed by the shared hardening and app scripts
+        - firewalld
+        - jq
+        - curl
+        - gnupg2
+        - bubblewrap
+        - xdg-user-dirs
+
+  - from-file: common.yml
+  - from-file: minimal.yml

@@ -39,10 +39,20 @@ Built with BlueBuild, signed with cosign, published to GHCR.
 |---|---|---|
 | `ghcr.io/OWNER/bastion-linux` | Fedora Silverblue (GNOME) | `recipes/recipe-gnome.yml` |
 | `ghcr.io/OWNER/bastion-linux-sway` | Fedora Sway Atomic | `recipes/recipe-sway.yml` |
+| `ghcr.io/OWNER/bastion-linux-minimal` | `fedora-bootc` (no desktop) | `recipes/recipe-minimal.yml` |
 
 GNOME is the recommended variant: it does not expose screen capture, clipboard
 reading or input injection to ordinary apps. Sway (wlroots) does, which matters
 for clipboard address-swapping malware. Sway is kept for comparison.
+
+**Minimal (experimental)** starts from `fedora-bootc`, which has no desktop, and adds
+an explicit package list with weak dependencies off: greetd + tuigreet (login, greeter
+runs as an unprivileged user), Sway, swaylock/swayidle, foot, NetworkManager (`nmtui`
+for Wi-Fi). There is no X server: XWayland is disabled in Sway and the build fails if
+any X server package gets in. The build log prints the package count. It is Sway, so
+the wlroots caveat above applies. Keys: Super+Enter terminal, Super+E Electrum,
+Super+B browser, Super+L lock (full list in `files/minimal/etc/sway/config`).
+Updates: `sudo bootc upgrade`.
 
 Shared hardening is in `recipes/common.yml`; per-desktop trimming in `recipes/gnome.yml`.
 CI builds every variant in parallel. In the commands below, use the image name of the
