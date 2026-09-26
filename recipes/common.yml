@@ -27,6 +27,13 @@ modules:
     scripts:
       - firewalld-default-drop.sh
 
+  # Apps come only from the signed image: drop Flatpak remotes, then install
+  # the wallet (upstream AppImage, GPG-verified against files/keys/).
+  - type: script
+    scripts:
+      - remove-flatpak-remotes.sh
+      - install-electrum.sh
+
   # Masking a unit that does not exist is harmless, so this list is shared.
   - type: systemd
     system:
@@ -42,3 +49,4 @@ modules:
         - bluetooth.service
         - systemd-importd.socket   # downloads disk images from the network
         - systemd-coredump.socket
+        - flatpak-add-fedora-repos.service   # re-adds the fedora remote at boot

@@ -142,3 +142,18 @@ After installing, do step 2 of "Install / rebase" to switch to the signed transp
 - `/etc/containers/policy.json` in the image requires that signature for this image
   and rejects images from every other registry path.
 - Daily rebuilds (for Fedora updates) are disabled while testing; see `schedule` in `build.yml`.
+
+## Wallet
+
+Electrum is installed from the upstream AppImage at build time
+(`files/scripts/install-electrum.sh`):
+
+- The signature must be valid from Thomas Voegtlin's release key
+  (`6694 D8DE 7BE8 EE56 31BE D950 2BD5 824B 7F94 70E6`), which is committed
+  in `files/keys/`. The key is never fetched at build time.
+- Unpacked into `/usr/lib/electrum` (read-only, no FUSE), launched via `/usr/bin/electrum`.
+- No `bitcoin:` URI handler, so the browser cannot open the wallet with a pre-filled payment.
+- Upgrade: bump `VERSION` in the script. The build log prints the AppImage sha256.
+
+No Flatpak remotes are configured; all apps come from the signed image.
+On a machine installed before this change: `flatpak uninstall --all && flatpak remote-delete fedora`.
