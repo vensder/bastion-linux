@@ -7,4 +7,15 @@ export GDK_BACKEND=wayland
 export MOZ_ENABLE_WAYLAND=1
 export SDL_VIDEODRIVER=wayland
 unset DISPLAY
-exec startlxqtwayland
+
+# No GPU render node (e.g. a VM with QXL or virtio without 3D): use the
+# software renderer instead of failing on EGL.
+if ! ls /dev/dri/renderD* > /dev/null 2>&1; then
+    export WLR_RENDERER=pixman
+fi
+
+# Keep the output of the last session for troubleshooting:
+#   ~/.local/state/bastion-session.log
+LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}"
+mkdir -p "$LOG_DIR"
+exec startlxqtwayland > "$LOG_DIR/bastion-session.log" 2>&1
