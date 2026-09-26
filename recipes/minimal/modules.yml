@@ -10,6 +10,8 @@ modules:
 
   - type: script
     scripts:
+      # lxqt-wayland-session drags in miriway + Xwayland; we use labwc.
+      - minimal/drop-miriway.sh
       - minimal/configure-greetd.sh
       # Last: fails the build if an X server got in; prints the package count.
       - minimal/check-minimal.sh

@@ -24,6 +24,7 @@ modules:
         # desktop: LXQt Wayland session on labwc (no lxqt-session X11 parts)
         - labwc
         - lxqt-wayland-session
+        - lxqt-labwc-session       # LXQt session files and theme for labwc
         - lxqt-panel
         - lxqt-config
         - lxqt-policykit
