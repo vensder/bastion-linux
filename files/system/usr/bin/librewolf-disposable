@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Run LibreWolf in a disposable bubblewrap sandbox.
+#
+# Sees:     /usr, /etc, /sys (read-only), GPU, network, the Wayland socket,
+#           and ~/Downloads (read-write, the only shared folder).
+# Does not: your home folder (~/.electrum etc.), X11, the D-Bus session bus,
+#           audio, other processes.
+# Disposable: the browser's home is a tmpfs, so profile, cookies, cache and
+#           history are gone when the window closes.
+set -euo pipefail
+
+: "${XDG_RUNTIME_DIR:?XDG_RUNTIME_DIR not set}"
+: "${WAYLAND_DISPLAY:?not a Wayland session}"
+WAYLAND_SOCKET="$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
+
+# On Fedora Atomic /home is a symlink to /var/home; use the real path.
+HOME_REAL=$(readlink -f "$HOME")
+DOWNLOADS="$HOME_REAL/Downloads"
+mkdir -p "$DOWNLOADS"
+
+# If the browser itself lives outside /usr, make that directory visible too.
+BIN=$(readlink -f /usr/bin/librewolf)
+EXTRA=()
+case "$(dirname "$BIN")" in
+    /usr/*) ;;
+    *) EXTRA+=(--ro-bind "$(dirname "$BIN")" "$(dirname "$BIN")") ;;
+esac
+
+exec bwrap \
+    --unshare-all --share-net \
+    --die-with-parent --new-session \
+    --ro-bind /usr /usr \
+    --symlink usr/bin /bin --symlink usr/sbin /sbin \
+    --symlink usr/lib /lib --symlink usr/lib64 /lib64 \
+    --ro-bind /etc /etc \
+    --ro-bind /sys /sys \
+    --ro-bind-try /run/systemd/resolve /run/systemd/resolve \
+    --proc /proc \
+    --dev /dev \
+    --tmpfs /dev/shm \
+    --dev-bind-try /dev/dri /dev/dri \
+    --tmpfs /tmp \
+    --tmpfs /var \
+    --symlink var/home /home \
+    --tmpfs "$HOME_REAL" \
+    --bind "$DOWNLOADS" "$DOWNLOADS" \
+    --dir "$XDG_RUNTIME_DIR" \
+    --chmod 0700 "$XDG_RUNTIME_DIR" \
+    --ro-bind "$WAYLAND_SOCKET" "$WAYLAND_SOCKET" \
+    "${EXTRA[@]}" \
+    --unsetenv DISPLAY \
+    --unsetenv DBUS_SESSION_BUS_ADDRESS \
+    --unsetenv SSH_AUTH_SOCK \
+    --setenv MOZ_ENABLE_WAYLAND 1 \
+    "$BIN" --no-remote "$@"

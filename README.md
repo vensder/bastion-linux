@@ -1,7 +1,37 @@
 # Bastion Linux
 
-Hardened Fedora Atomic (Silverblue) desktop for self-custody cryptocurrency wallets.
+Hardened Fedora Atomic desktop for self-custody Bitcoin wallets, as a research project.
 Built with BlueBuild, signed with cosign, published to GHCR.
+
+## Status and disclaimer
+
+**This is an experimental research project, not a finished or audited product.**
+
+- It is provided "as is", without warranty of any kind, express or implied,
+  including fitness for a particular purpose. See [LICENSE](LICENSE).
+- Use it at your own risk. The authors are not liable for any loss of funds,
+  data, or any other damage arising from its use.
+- It has not been independently security-audited. Hardening reduces risk; it
+  does not make a computer that holds private keys safe.
+- Nothing here is financial, legal, or security advice.
+- Keep your seed phrase offline (paper or steel). Never type it into a browser,
+  photograph it, or store it digitally. Test with small amounts first.
+- For significant amounts, a hardware wallet is safer than any software wallet
+  on an internet-connected machine.
+
+## What it does
+
+- **Signed, immutable OS image.** Updates are verified against the project's
+  cosign key; images from any other registry path are rejected.
+- **Nothing listens on the network.** Firewall default zone `drop`; SSH server
+  removed; mDNS/LLMNR, CUPS, remote desktop and other network-facing services masked.
+- **Less running code.** Unneeded system and GNOME user services masked;
+  GNOME Software, Parental Controls and online-account providers removed or disabled.
+- **No core dumps**, so process memory (wallet keys) is never written to disk.
+- **One update channel.** No Flatpak remotes; the wallet (Electrum) is built
+  into the image from the upstream release, GPG-verified against a pinned key.
+- **Disposable, sandboxed browser.** LibreWolf runs in a bubblewrap sandbox with an
+  in-memory profile and no access to your home folder or the wallet.
 
 ## Variants
 
@@ -10,12 +40,45 @@ Built with BlueBuild, signed with cosign, published to GHCR.
 | `ghcr.io/OWNER/bastion-linux` | Fedora Silverblue (GNOME) | `recipes/recipe-gnome.yml` |
 | `ghcr.io/OWNER/bastion-linux-sway` | Fedora Sway Atomic | `recipes/recipe-sway.yml` |
 
+GNOME is the recommended variant: it does not expose screen capture, clipboard
+reading or input injection to ordinary apps. Sway (wlroots) does, which matters
+for clipboard address-swapping malware. Sway is kept for comparison.
+
 Shared hardening is in `recipes/common.yml`; per-desktop trimming in `recipes/gnome.yml`.
 CI builds every variant in parallel. In the commands below, use the image name of the
 variant you want.
 
-Every variant trusts all images under `ghcr.io/OWNER/` signed with our key, so a
+Every variant trusts all images under `ghcr.io/OWNER/` signed with the same key, so a
 machine can switch variants with `ostree-image-signed:` directly, no unverified hop.
+
+## Build your own
+
+You can build and sign your own copy with a free GitHub account. You then trust
+your own key and your own build, not someone else's.
+
+1. **Fork** this repository. In the fork, open the **Actions** tab and enable workflows
+   (GitHub disables them in forks).
+2. **Create a signing key** (needs [cosign](https://github.com/sigstore/cosign)):
+   ```sh
+   COSIGN_PASSWORD="" cosign generate-key-pair
+   ```
+   This writes `cosign.key` (private) and `cosign.pub` (public).
+3. **Store the private key in a protected environment.** In the fork:
+   Settings -> Environments -> New environment `release`. Under "Deployment branches",
+   allow only `main`. Add an environment secret `COSIGN_PRIVATE_KEY` with the full
+   contents of `cosign.key`.
+4. **Commit your public key.** Replace `cosign.pub` in the repository root with yours.
+   Then delete `cosign.key` from disk, or move it to offline storage.
+5. **Build.** Push to `main` or run the workflow manually (Actions -> Build Bastion Linux
+   -> Run workflow). Images appear under your account's Packages as
+   `ghcr.io/<your-account>/bastion-linux` and `ghcr.io/<your-account>/bastion-linux-sway`.
+6. **Package visibility.** New GHCR packages are private. Either make them public
+   (package page -> Package settings -> Change visibility) or run
+   `sudo podman login ghcr.io` before pulling.
+7. **Install** with the steps below, using your account name as `OWNER`.
+
+Changing the image name: edit `name:` in `recipes/recipe-*.yml`. Everything else
+(policy, signing) follows the name and your account automatically.
 
 ## Install / rebase
 
@@ -139,8 +202,9 @@ After installing, do step 2 of "Install / rebase" to switch to the signed transp
 ## Supply chain
 
 - Image is signed in CI with the key in the `release` environment (main branch only).
-- `/etc/containers/policy.json` in the image requires that signature for this image
-  and rejects images from every other registry path.
+- `/etc/containers/policy.json` in the image requires that signature for images under
+  the owner's GHCR namespace and rejects images from every other registry path.
+- GitHub Actions are pinned by commit SHA; Dependabot proposes updates.
 - Daily rebuilds (for Fedora updates) are disabled while testing; see `schedule` in `build.yml`.
 
 ## Wallet
@@ -155,5 +219,28 @@ Electrum is installed from the upstream AppImage at build time
 - No `bitcoin:` URI handler, so the browser cannot open the wallet with a pre-filled payment.
 - Upgrade: bump `VERSION` in the script. The build log prints the AppImage sha256.
 
+## Browser
+
+LibreWolf replaces Firefox. It is installed from the official LibreWolf RPM repo at
+build time; the repo key must match the pinned fingerprint
+`662E 3CDD 6FE3 2900 2D0C A5BB 4033 9DD8 2B12 EF16`, and the repo is removed
+again after install (`files/scripts/install-librewolf.sh`).
+
+Every launch from the app grid, and every link opened from another app, goes through
+`/usr/bin/librewolf-disposable`, a bubblewrap sandbox:
+
+- **Disposable:** the browser's home is in memory. Profile, cookies, cache and history
+  are gone when the window closes. You log in to exchanges each time.
+- **Cannot see your home folder,** so not the wallet (`~/.electrum`). The only shared
+  folder is `~/Downloads`.
+- **Wayland only:** no X11, no D-Bus session bus, no audio.
+- Typing `librewolf` in a terminal starts it *without* the sandbox; use the app grid.
+
 No Flatpak remotes are configured; all apps come from the signed image.
 On a machine installed before this change: `flatpak uninstall --all && flatpak remote-delete fedora`.
+
+## License
+
+The build configuration and scripts in this repository are licensed under the
+[Apache License 2.0](LICENSE). The resulting OS images contain Fedora, Electrum and
+other software, each under its own license.
