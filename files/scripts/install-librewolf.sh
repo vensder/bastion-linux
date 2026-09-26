@@ -49,7 +49,9 @@ if [ -z "$DESKTOP" ]; then
     echo "ERROR: no LibreWolf desktop file found" >&2
     exit 1
 fi
-sed -E -i 's#^Exec=(/usr/bin/)?librewolf#Exec=/usr/bin/librewolf-disposable#' "$DESKTOP"
+# Replace only the command (first word, any path ending in "librewolf"),
+# keep the arguments: /usr/share/librewolf/librewolf %u -> librewolf-disposable %u
+sed -E -i 's#^Exec=[^ ]*librewolf( |$)#Exec=/usr/bin/librewolf-disposable\1#' "$DESKTOP"
 if grep -E '^Exec=' "$DESKTOP" | grep -v -q 'librewolf-disposable'; then
     echo "ERROR: unrewritten Exec line in $DESKTOP:" >&2
     grep -E '^Exec=' "$DESKTOP" >&2

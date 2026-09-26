@@ -19,7 +19,11 @@ DOWNLOADS="$HOME_REAL/Downloads"
 mkdir -p "$DOWNLOADS"
 
 # If the browser itself lives outside /usr, make that directory visible too.
-BIN=$(readlink -f /usr/bin/librewolf)
+BIN=""
+for candidate in /usr/bin/librewolf /usr/share/librewolf/librewolf; do
+    if [ -x "$candidate" ]; then BIN=$(readlink -f "$candidate"); break; fi
+done
+[ -n "$BIN" ] || { echo "librewolf binary not found" >&2; exit 1; }
 EXTRA=()
 case "$(dirname "$BIN")" in
     /usr/*) ;;
