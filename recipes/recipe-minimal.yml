@@ -22,6 +22,10 @@ modules:
         - tuigreet
         # session: compositor, lock screen, terminal
         - sway
+        # sway needs *a* sway-config package. The default one (sway-config-upstream)
+        # hard-requires Xwayland; this one requires only sway. Our own config
+        # replaces its /etc/sway/config anyway (files/minimal).
+        - sway-config-minimal
         - swaylock
         - swayidle
         - foot
