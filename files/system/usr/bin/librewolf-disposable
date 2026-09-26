@@ -2,7 +2,7 @@
 # Run LibreWolf in a disposable bubblewrap sandbox.
 #
 # Sees:     /usr, /etc, /sys (read-only), GPU, network, the Wayland socket,
-#           and ~/Downloads (read-write, the only shared folder).
+#           and your Downloads folder (read-write, the only shared folder).
 # Does not: your home folder (~/.electrum etc.), X11, the D-Bus session bus,
 #           audio, other processes.
 # Disposable: the browser's home is a tmpfs, so profile, cookies, cache and
@@ -15,8 +15,15 @@ WAYLAND_SOCKET="$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
 
 # On Fedora Atomic /home is a symlink to /var/home; use the real path.
 HOME_REAL=$(readlink -f "$HOME")
-DOWNLOADS="$HOME_REAL/Downloads"
+# Share only the user's Downloads folder, including a localised name.
+# xdg-user-dir prints $HOME when no Downloads folder is configured.
+DOWNLOADS=$(xdg-user-dir DOWNLOAD 2> /dev/null || true)
+if [ -z "$DOWNLOADS" ] || [ "$(readlink -f "$DOWNLOADS")" = "$HOME_REAL" ]; then
+    DOWNLOADS="$HOME/Downloads"
+fi
 mkdir -p "$DOWNLOADS"
+DOWNLOADS=$(readlink -f "$DOWNLOADS")
+USER_DIRS="$HOME_REAL/.config/user-dirs.dirs"
 
 # If the browser itself lives outside /usr, make that directory visible too.
 BIN=""
@@ -48,6 +55,7 @@ exec bwrap \
     --symlink var/home /home \
     --tmpfs "$HOME_REAL" \
     --bind "$DOWNLOADS" "$DOWNLOADS" \
+    --ro-bind-try "$USER_DIRS" "$USER_DIRS" \
     --dir "$XDG_RUNTIME_DIR" \
     --chmod 0700 "$XDG_RUNTIME_DIR" \
     --ro-bind "$WAYLAND_SOCKET" "$WAYLAND_SOCKET" \

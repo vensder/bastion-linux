@@ -232,7 +232,7 @@ Every launch from the app grid, and every link opened from another app, goes thr
 - **Disposable:** the browser's home is in memory. Profile, cookies, cache and history
   are gone when the window closes. You log in to exchanges each time.
 - **Cannot see your home folder,** so not the wallet (`~/.electrum`). The only shared
-  folder is `~/Downloads`.
+  folder is your Downloads folder (the localised one, e.g. from `xdg-user-dir DOWNLOAD`).
 - **Wayland only:** no X11, no D-Bus session bus, no audio.
 - Typing `librewolf` in a terminal starts it *without* the sandbox; use the app grid.
 
