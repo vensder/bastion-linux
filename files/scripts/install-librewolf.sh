@@ -67,7 +67,7 @@ x-scheme-handler/https=$DESKTOP_ID
 text/html=$DESKTOP_ID
 EOF
 
-# Sandbox wrapper comes from files/system via the files module.
+# Sandbox wrapper comes from files/librewolf (recipes/shared/librewolf.yml).
 chmod 755 /usr/bin/librewolf-disposable
 
 echo "LibreWolf installed: $(rpm -q librewolf); desktop entry: $DESKTOP_ID"

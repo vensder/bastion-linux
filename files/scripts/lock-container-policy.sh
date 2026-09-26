@@ -8,8 +8,18 @@ set -euo pipefail
 POLICY=/etc/containers/policy.json
 
 # The entry the signing module added for this image, e.g. ghcr.io/OWNER/bastion-linux.
-OWN=$(jq -r '[.transports.docker | to_entries[]
-              | select(.value[0].type == "sigstoreSigned") | .key][0] // empty' "$POLICY")
+# Prefer the exact name (the base image may bring its own signed entries, e.g.
+# secureblue); otherwise take the first sigstoreSigned entry, which the signing
+# module puts first.
+OWN=""
+if [ -n "${IMAGE_REGISTRY:-}" ] && [ -n "${IMAGE_NAME:-}" ]; then
+    OWN=$(jq -r --arg k "${IMAGE_REGISTRY}/${IMAGE_NAME}" \
+          '.transports.docker[$k][0].type as $t | if $t == "sigstoreSigned" then $k else empty end' "$POLICY")
+fi
+if [ -z "$OWN" ]; then
+    OWN=$(jq -r '[.transports.docker | to_entries[]
+                  | select(.value[0].type == "sigstoreSigned") | .key][0] // empty' "$POLICY")
+fi
 if [ -z "$OWN" ]; then
     echo "ERROR: no sigstoreSigned entry in $POLICY" >&2
     exit 1

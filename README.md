@@ -37,29 +37,56 @@ Built with BlueBuild, signed with cosign, published to GHCR.
 
 | Image | Base | Recipe |
 |---|---|---|
-| `ghcr.io/OWNER/bastion-linux` | Fedora Silverblue (GNOME) | `recipes/recipe-gnome.yml` |
-| `ghcr.io/OWNER/bastion-linux-sway` | Fedora Sway Atomic | `recipes/recipe-sway.yml` |
-| `ghcr.io/OWNER/bastion-linux-minimal` | `fedora-bootc` (no desktop) | `recipes/recipe-minimal.yml` |
+| `ghcr.io/OWNER/bastion-linux` | Fedora Silverblue (GNOME) | `recipes/gnome/` |
+| `ghcr.io/OWNER/bastion-linux-secureblue` | secureblue `silverblue-main-hardened` (GNOME) | `recipes/secureblue/` |
+| `ghcr.io/OWNER/bastion-linux-minimal` | `fedora-bootc` (no desktop), LXQt on labwc | `recipes/minimal/` |
 
-GNOME is the recommended variant: it does not expose screen capture, clipboard
-reading or input injection to ordinary apps. Sway (wlroots) does, which matters
-for clipboard address-swapping malware. Sway is kept for comparison.
+**GNOME** is the reference variant. GNOME does not expose screen capture, clipboard
+reading or input injection to ordinary apps; wlroots compositors (labwc, Sway) do,
+which matters for clipboard address-swapping malware.
+
+**secureblue (experimental)** builds on [secureblue](https://github.com/secureblue/secureblue)'s
+hardened Silverblue (hardened_malloc, kernel and sysctl hardening, unprivileged user
+namespaces off, Trivalent browser) and adds the shared Bastion layer and Electrum.
+LibreWolf is not added: its bubblewrap sandbox needs unprivileged user namespaces.
+secureblue does not officially support derived images.
 
 **Minimal (experimental)** starts from `fedora-bootc`, which has no desktop, and adds
 an explicit package list with weak dependencies off: greetd + tuigreet (login, greeter
-runs as an unprivileged user), Sway, swaylock/swayidle, foot, NetworkManager (`nmtui`
-for Wi-Fi). There is no X server: XWayland is disabled in Sway and the build fails if
-any X server package gets in. The build log prints the package count. It is Sway, so
-the wlroots caveat above applies. Keys: Super+Enter terminal, Super+E Electrum,
-Super+B browser, Super+L lock (full list in `files/minimal/etc/sway/config`).
-Updates: `sudo bootc upgrade`.
-
-Shared hardening is in `recipes/common.yml`; per-desktop trimming in `recipes/gnome.yml`.
-CI builds every variant in parallel. In the commands below, use the image name of the
-variant you want.
+runs as an unprivileged user), LXQt Wayland session on labwc, pcmanfm-qt, foot,
+swaylock/swayidle (locks after 5 minutes idle; "Lock screen" in the menu),
+NetworkManager (`nmtui` for Wi-Fi). There is no X server: the build fails if any X
+server package gets in, and prints the package count. Updates: `sudo bootc upgrade`.
 
 Every variant trusts all images under `ghcr.io/OWNER/` signed with the same key, so a
 machine can switch variants with `ostree-image-signed:` directly, no unverified hop.
+In the commands below, use the image name of the variant you want.
+
+## Repository layout and CI
+
+```
+recipes/<variant>/recipe.yml   one directory per variant (gnome, secureblue, minimal)
+recipes/<variant>/*.yml        modules used only by that variant
+recipes/shared/*.yml           modules used by several variants
+files/<variant>/               file trees copied only into that variant
+files/scripts/<variant>/       scripts used only by that variant
+files/system/, files/scripts/  shared files and scripts
+files/keys/                    pinned release keys
+iso/config.toml                installer ISO config
+```
+
+Each variant has its own workflow, `.github/workflows/build-<variant>.yml`, which uses
+GitHub's `paths` filter: it runs for any change except other variants' directories,
+docs (`*.md`, `LICENSE`) and ISO-only files. So a change under `recipes/<v>/`,
+`files/<v>/` or `files/scripts/<v>/` rebuilds only `<v>`; a shared change (shared
+modules, scripts, keys, `cosign.pub`, `_build-variant.yml`) rebuilds all variants.
+The build steps themselves are in one reusable workflow, `_build-variant.yml`.
+Manual run: Actions -> Build <variant> -> Run workflow.
+
+To add a variant: create `recipes/<name>/recipe.yml`, copy one `build-<variant>.yml` to
+`build-<name>.yml` (set `recipe:` and the `!` lines), add `!` lines for the new
+variant's directories to the other variants' workflows, and add the image name to
+`build-iso.yml`.
 
 ## Build your own
 
@@ -79,15 +106,15 @@ your own key and your own build, not someone else's.
    contents of `cosign.key`.
 4. **Commit your public key.** Replace `cosign.pub` in the repository root with yours.
    Then delete `cosign.key` from disk, or move it to offline storage.
-5. **Build.** Push to `main` or run the workflow manually (Actions -> Build Bastion Linux
-   -> Run workflow). Images appear under your account's Packages as
-   `ghcr.io/<your-account>/bastion-linux` and `ghcr.io/<your-account>/bastion-linux-sway`.
+5. **Build.** Push to `main` or run each variant's workflow manually (Actions -> Build
+   <variant> -> Run workflow). Images appear under your account's Packages as
+   `ghcr.io/<your-account>/bastion-linux`, `...-secureblue` and `...-minimal`.
 6. **Package visibility.** New GHCR packages are private. Either make them public
    (package page -> Package settings -> Change visibility) or run
    `sudo podman login ghcr.io` before pulling.
 7. **Install** with the steps below, using your account name as `OWNER`.
 
-Changing the image name: edit `name:` in `recipes/recipe-*.yml`. Everything else
+Changing the image name: edit `name:` in `recipes/<variant>/recipe.yml`. Everything else
 (policy, signing) follows the name and your account automatically.
 
 ## Install / rebase

@@ -1,0 +1,41 @@
+name: Build variant (reusable)
+
+# Called by build-<variant>.yml. Pull requests: build only (no key, no push).
+# Everything else (push to main, manual, schedule): build, sign, push.
+on:
+  workflow_call:
+    inputs:
+      recipe:
+        description: Recipe path relative to recipes/, e.g. gnome/recipe.yml
+        type: string
+        required: true
+
+permissions: {}
+
+jobs:
+  pr-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: blue-build/github-action@c295af864f2802fc6aea227507af43d35823db81 # v1.13.0
+        with:
+          recipe: ${{ inputs.recipe }}
+          push: false
+          verify_install: true
+
+  release:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    environment: release   # COSIGN_PRIVATE_KEY lives here, restricted to main
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: blue-build/github-action@c295af864f2802fc6aea227507af43d35823db81 # v1.13.0
+        with:
+          recipe: ${{ inputs.recipe }}
+          cosign_private_key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          registry_token: ${{ github.token }}
+          verify_install: true

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Idle lock
+Comment=Lock the screen after 5 minutes idle and before suspend
+Exec=swayidle -w timeout 300 "swaylock -f -c 000000" before-sleep "swaylock -f -c 000000"
+OnlyShowIn=LXQt;
+NoDisplay=true

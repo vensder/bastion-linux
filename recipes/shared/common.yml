@@ -28,14 +28,12 @@ modules:
       - firewalld-default-drop.sh
 
   # Apps come only from the signed image: drop Flatpak remotes, then install
-  # the wallet (upstream AppImage, GPG-verified against files/keys/) and
-  # LibreWolf (official repo, key pinned) in place of Firefox, launched only
-  # through the disposable sandbox /usr/bin/librewolf-disposable.
+  # the wallet (upstream AppImage, GPG-verified against files/keys/).
+  # The browser is per variant (shared/librewolf.yml, or the base image's own).
   - type: script
     scripts:
       - remove-flatpak-remotes.sh
       - install-electrum.sh
-      - install-librewolf.sh
 
   # Masking a unit that does not exist is harmless, so this list is shared.
   - type: systemd

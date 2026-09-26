@@ -1,0 +1,17 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+
+# GNOME on secureblue's hardened Silverblue: their hardening (hardened_malloc,
+# kernel/sysctl hardening, SELinux tweaks, Trivalent browser, unprivileged
+# user namespaces off) plus the shared Bastion layer and Electrum.
+# secureblue does not officially support derived images; this is experimental.
+name: bastion-linux-secureblue
+description: Bastion Linux on secureblue (silverblue-main-hardened base).
+
+base-image: ghcr.io/secureblue/silverblue-main-hardened
+image-version: latest
+
+modules:
+  - from-file: shared/common.yml
+  # No LibreWolf here: its sandbox needs unprivileged user namespaces, which
+  # secureblue disables. The browser is secureblue's own Trivalent.

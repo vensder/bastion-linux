@@ -1,0 +1,13 @@
+---
+# LibreWolf (official repo, key pinned) in place of Firefox, launched only
+# through the disposable sandbox /usr/bin/librewolf-disposable.
+# Needs unprivileged user namespaces for bubblewrap.
+modules:
+  - type: files
+    files:
+      - source: librewolf
+        destination: /
+
+  - type: script
+    scripts:
+      - install-librewolf.sh

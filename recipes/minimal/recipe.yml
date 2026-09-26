@@ -2,9 +2,10 @@
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 
 # EXPERIMENTAL. Built up from fedora-bootc (no desktop) with an explicit
-# package list: greetd + tuigreet login, Sway session, no X server.
+# package list: greetd + tuigreet login, LXQt on the labwc Wayland compositor,
+# no X server.
 name: bastion-linux-minimal
-description: Bastion Linux, minimal variant (fedora-bootc base, greetd + Sway, no X server).
+description: Bastion Linux, minimal variant (fedora-bootc base, LXQt on labwc, Wayland only).
 
 base-image: quay.io/fedora/fedora-bootc
 image-version: 44
@@ -20,15 +21,20 @@ modules:
         - greetd
         - greetd-selinux
         - tuigreet
-        # session: compositor, lock screen, terminal
-        - sway
-        # sway needs *a* sway-config package. The default one (sway-config-upstream)
-        # hard-requires Xwayland; this one requires only sway. Our own config
-        # replaces its /etc/sway/config anyway (files/minimal).
-        - sway-config-minimal
+        # desktop: LXQt Wayland session on labwc (no lxqt-session X11 parts)
+        - labwc
+        - lxqt-wayland-session
+        - lxqt-panel
+        - lxqt-config
+        - lxqt-policykit
+        - lxqt-notificationd
+        - lxqt-qtplugin
+        - lxqt-themes
+        - pcmanfm-qt
+        # Wayland-native tools: terminal, lock, idle
+        - foot
         - swaylock
         - swayidle
-        - foot
         - mesa-dri-drivers
         - dejavu-sans-fonts
         - dejavu-sans-mono-fonts
@@ -44,5 +50,6 @@ modules:
         - bubblewrap
         - xdg-user-dirs
 
-  - from-file: common.yml
-  - from-file: minimal.yml
+  - from-file: shared/common.yml
+  - from-file: shared/librewolf.yml
+  - from-file: minimal/modules.yml

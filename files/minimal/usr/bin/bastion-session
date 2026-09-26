@@ -1,10 +1,10 @@
 #!/bin/sh
-# Session started by greetd/tuigreet. Wayland only: toolkits must not look for X11.
+# Session started by greetd/tuigreet: LXQt on labwc, Wayland only.
+# There is no X server in this image; toolkits must not look for one.
 export XDG_SESSION_TYPE=wayland
-export XDG_CURRENT_DESKTOP=sway
 export QT_QPA_PLATFORM=wayland
 export GDK_BACKEND=wayland
 export MOZ_ENABLE_WAYLAND=1
 export SDL_VIDEODRIVER=wayland
 unset DISPLAY
-exec sway
+exec startlxqtwayland

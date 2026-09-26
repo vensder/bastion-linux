@@ -1,7 +1,8 @@
 ---
-# Session setup for the minimal variant (recipe-minimal.yml).
+# Session setup for the minimal variant (minimal/recipe.yml).
 modules:
-  # /etc/sway/config and /usr/bin/bastion-session.
+  # /usr/bin/bastion-session, LXQt compositor choice, idle lock autostart,
+  # "Lock screen" menu entry.
   - type: files
     files:
       - source: minimal
@@ -9,9 +10,9 @@ modules:
 
   - type: script
     scripts:
-      - configure-greetd.sh
+      - minimal/configure-greetd.sh
       # Last: fails the build if an X server got in; prints the package count.
-      - check-minimal.sh
+      - minimal/check-minimal.sh
 
   - type: systemd
     system:

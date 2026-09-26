@@ -1,0 +1,58 @@
+name: Build minimal
+
+# Runs when anything this variant uses changes: its own recipes/minimal/,
+# files/minimal/ and files/scripts/minimal/, plus every shared file. The '!' lines
+# skip other variants' directories, docs and ISO-only files.
+# Adding a variant: also exclude its directories here.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**'
+      - '!recipes/gnome/**'
+      - '!files/gnome/**'
+      - '!files/scripts/gnome/**'
+      - '!.github/workflows/build-gnome.yml'
+      - '!recipes/secureblue/**'
+      - '!files/secureblue/**'
+      - '!files/scripts/secureblue/**'
+      - '!.github/workflows/build-secureblue.yml'
+      - '!**.md'
+      - '!LICENSE'
+      - '!iso/**'
+      - '!.github/workflows/build-iso.yml'
+  pull_request:
+    paths:
+      - '**'
+      - '!recipes/gnome/**'
+      - '!files/gnome/**'
+      - '!files/scripts/gnome/**'
+      - '!.github/workflows/build-gnome.yml'
+      - '!recipes/secureblue/**'
+      - '!files/secureblue/**'
+      - '!files/scripts/secureblue/**'
+      - '!.github/workflows/build-secureblue.yml'
+      - '!**.md'
+      - '!LICENSE'
+      - '!iso/**'
+      - '!.github/workflows/build-iso.yml'
+  # Disabled while testing. Re-enable for daily Fedora security updates.
+  # schedule:
+  #   - cron: "17 14 * * *"   # daily, ~03:17 NZ
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build-variant.yml
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit
+    with:
+      recipe: minimal/recipe.yml

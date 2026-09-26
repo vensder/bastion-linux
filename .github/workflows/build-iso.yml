@@ -7,7 +7,7 @@ on:
       variant:
         description: Image to build the ISO from
         type: choice
-        options: [bastion-linux, bastion-linux-sway, bastion-linux-minimal]
+        options: [bastion-linux, bastion-linux-secureblue, bastion-linux-minimal]
         default: bastion-linux
       tag:
         description: Image tag
