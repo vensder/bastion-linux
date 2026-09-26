@@ -3,7 +3,7 @@ name: Build Bastion Linux
 on:
   push:
     branches: [main]
-    paths-ignore: ["**.md"]
+    paths-ignore: ["**.md", "iso/**", ".github/workflows/build-iso.yml"]
   pull_request:
   # Disabled while testing. Re-enable for daily Fedora security updates.
   # schedule:

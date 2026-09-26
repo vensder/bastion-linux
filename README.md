@@ -154,25 +154,37 @@ After the first boot, do step 2 of "Install / rebase" to switch to the signed tr
 
 ## Build an installer ISO
 
-Same tool, same prerequisites (rootful Podman, the Ubuntu AppArmor step above).
+The ISO is an interactive installer. During install you:
 
-**Warning:** the ISO is an unattended Anaconda installer. It installs to the
-first disk it finds and wipes it without asking. Boot it only in a VM with a
-blank disk, or on a machine whose disk you mean to erase.
+- choose the disk and tick **Encrypt my data** (LUKS2 full-disk encryption; you set the
+  disk passphrase and type it at every boot) - **strongly recommended**;
+- choose language, keyboard and time zone;
+- create your own user and password (tick "Make this user administrator").
+  No password is baked into the ISO, and the root account is locked.
 
-Use a separate `config-iso.toml` with only the user. The installer lays out the
-whole disk itself, so leave out the `[[customizations.filesystem]]` block:
+The installed system is switched to signed updates (`ostree-image-signed:`) by the
+installer, so the manual step 2 of "Install / rebase" is not needed.
 
-```toml
-[[customizations.user]]
-name = "tester"
-password = "changeme"
-groups = ["wheel"]
-```
+### In GitHub Actions (recommended)
 
-Build:
+Actions -> **Build installer ISO** -> Run workflow, pick the variant. The workflow
+verifies the image signature with `cosign.pub`, checks the pulled image is the verified
+one, builds the ISO and uploads it with a `.sha256` file as a workflow artifact
+(kept 7 days). Download it from the run page and check it:
 
 ```sh
+sha256sum -c bastion-linux-*.iso.sha256
+```
+
+### Locally
+
+Same tool and prerequisites as the qcow2 build (rootful Podman, the Ubuntu AppArmor step).
+
+```sh
+IMAGE=ghcr.io/OWNER/bastion-linux:latest
+sudo podman pull "$IMAGE"
+sed "s#@IMAGE@#${IMAGE}#" iso/config.toml > config-iso.toml
+
 mkdir -p output
 # --net=host: the ISO build downloads installer RPMs from Fedora mirrors,
 # and DNS often fails on podman's default bridge (e.g. Ubuntu + systemd-resolved).
@@ -184,7 +196,7 @@ sudo podman run --rm -it --privileged --pull=newer --net=host \
   -v /var/lib/containers/storage:/var/lib/containers/storage \
   quay.io/centos-bootc/bootc-image-builder:latest \
   --type anaconda-iso --rootfs btrfs \
-  ghcr.io/OWNER/bastion-linux:latest
+  "$IMAGE"
 # result: output/bootiso/install.iso
 ```
 
@@ -197,7 +209,8 @@ sudo virt-install --name bastion-iso --memory 4096 --vcpus 2 \
   --os-variant fedora-unknown --boot uefi --graphics spice
 ```
 
-After installing, do step 2 of "Install / rebase" to switch to the signed transport.
+After install, check: `rpm-ostree status` shows `ostree-image-signed:docker://...`,
+and `lsblk -f` shows a `crypto_LUKS` partition if you chose encryption.
 
 ## Supply chain
 
