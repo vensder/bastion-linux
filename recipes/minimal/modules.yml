@@ -10,9 +10,9 @@ modules:
 
   - type: script
     scripts:
-      # DEBUG PHASE: miriway kept as a second compositor to try. Re-enable to
-      # remove it (lxqt-wayland-session drags it in; we use labwc).
-      # - minimal/drop-miriway.sh
+      # lxqt-wayland-session drags in miriway; remove it so labwc is the only
+      # compositor LXQt can pick.
+      - minimal/drop-miriway.sh
       - minimal/configure-greetd.sh
       # Last: reports X server packages and the package count (report-only
       # during the debug phase; see STRICT in the script).
