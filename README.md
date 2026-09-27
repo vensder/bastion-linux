@@ -52,11 +52,13 @@ the gnome variant (shared in `recipes/shared/gnome-lockdown.yml`), far fewer pac
 the build log prints the package count. No file manager yet. Updates: `sudo bootc upgrade`.
 
 **Minimal (experimental, LXQt)** starts from `fedora-bootc`, which has no desktop, and adds
-an explicit package list with weak dependencies off: greetd + tuigreet (login, greeter
-runs as an unprivileged user), LXQt Wayland session on labwc, pcmanfm-qt, foot,
-swaylock/swayidle (locks after 5 minutes idle; "Lock screen" in the menu),
-NetworkManager (`nmtui` for Wi-Fi). There is no X server: the build fails if any X
-server package gets in, and prints the package count. Updates: `sudo bootc upgrade`.
+an explicit package list with weak dependencies off: greetd with a graphical greeter
+(gtkgreet in the cage kiosk compositor, running as an unprivileged user; falls back to
+the text greeter tuigreet if graphics fail), LXQt Wayland session on labwc, pcmanfm-qt,
+foot, swaylock/swayidle (locks after 5 minutes idle; "Lock screen" in the menu),
+NetworkManager (`nmtui` for Wi-Fi). No Xorg server; Xwayland is kept for now while the
+session is being debugged (see `files/scripts/minimal/`). Session log:
+`~/.local/state/bastion-session.log`. Updates: `sudo bootc upgrade`.
 
 Every variant trusts all images under `ghcr.io/OWNER/` signed with the same key, so a
 machine can switch variants with `ostree-image-signed:` directly, no unverified hop.

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# greetd shows tuigreet on tty1 and starts the Bastion Sway session.
+# greetd runs the graphical greeter (bastion-greeter: gtkgreet in cage, falling
+# back to tuigreet) on tty1; the greeter starts the Bastion LXQt session.
 # Only the greeter command is changed; the packaged unprivileged greeter user stays.
 set -euo pipefail
 
 CONF=/etc/greetd/config.toml
-CMD='command = "tuigreet --time --asterisks --cmd /usr/bin/bastion-session"'
+CMD='command = "/usr/bin/bastion-greeter"'
 
 if [ ! -f "$CONF" ]; then
     echo "ERROR: $CONF not found; is greetd installed?" >&2
@@ -17,7 +18,7 @@ if ! grep -q '^command *=' "$CONF"; then
 fi
 
 sed -i "s#^command *=.*#${CMD}#" "$CONF"
-chmod 755 /usr/bin/bastion-session
+chmod 755 /usr/bin/bastion-session /usr/bin/bastion-greeter
 
 # Boot to the graphical login.
 systemctl set-default graphical.target

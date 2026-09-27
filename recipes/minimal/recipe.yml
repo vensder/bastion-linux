@@ -20,8 +20,10 @@ modules:
         # login: greetd runs the greeter as an unprivileged user
         - greetd
         - greetd-selinux
-        - tuigreet
-        # desktop: LXQt Wayland session on labwc (no lxqt-session X11 parts)
+        - tuigreet                 # text fallback if the graphical greeter fails
+        - cage                     # kiosk compositor that hosts the graphical greeter
+        - gtkgreet
+        # desktop: LXQt Wayland session on labwc
         - labwc
         - lxqt-wayland-session
         - lxqt-labwc-session       # LXQt session files and theme for labwc

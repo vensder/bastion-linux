@@ -9,7 +9,8 @@
 # bootc system, so this only shows up in `rpm -V`/dnf checks, not at runtime.
 set -euo pipefail
 
-CHAIN="lxqt-wayland-session-default-compositor-miriway lxqt-miriway-session miriway xorg-x11-server-Xwayland"
+# Xwayland is kept for now (debugging); add xorg-x11-server-Xwayland here to drop it.
+CHAIN="lxqt-wayland-session-default-compositor-miriway lxqt-miriway-session miriway"
 
 INSTALLED=""
 for pkg in $CHAIN; do

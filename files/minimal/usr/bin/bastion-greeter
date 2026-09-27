@@ -1,0 +1,16 @@
+#!/bin/sh
+# Login screen, run by greetd as its unprivileged greeter user.
+# Graphical: gtkgreet inside the cage kiosk compositor. If cage cannot start
+# (e.g. no working graphics), fall back to the text greeter so login still works.
+
+# No GPU render node (VM without 3D): use the software renderer.
+if ! ls /dev/dri/renderD* > /dev/null 2>&1; then
+    export WLR_RENDERER=pixman
+fi
+export GDK_BACKEND=wayland
+
+# -s: allow switching to other consoles (Ctrl+Alt+F2) for troubleshooting.
+cage -s -- gtkgreet && exit 0
+
+echo "Graphical greeter failed, using the text greeter." >&2
+exec tuigreet --time --asterisks --cmd /usr/bin/bastion-session
