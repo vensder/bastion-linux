@@ -29,6 +29,7 @@ modules:
         - lxqt-session             # the LXQt session itself (startlxqtwayland runs it)
         - lxqt-wayland-session
         - lxqt-labwc-session       # LXQt session files and theme for labwc
+        - labwc-tweaks             # settings app for labwc: window decoration theme, cursor, keyboard
         - lxqt-panel
         - lxqt-config
         - lxqt-policykit
