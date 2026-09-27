@@ -1,0 +1,2 @@
+# Private signing key: lives only in the GitHub "release" environment secret.
+cosign.key

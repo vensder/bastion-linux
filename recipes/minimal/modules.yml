@@ -10,9 +10,10 @@ modules:
 
   - type: script
     scripts:
-      # lxqt-wayland-session drags in miriway; remove it so labwc is the only
-      # compositor LXQt can pick.
-      - minimal/drop-miriway.sh
+      # DEBUG PHASE: miriway kept as a second session in the greeter until labwc
+      # login is proven. Then re-enable to remove it (lxqt-wayland-session drags
+      # it in) and drop "miriway" from files/minimal/etc/greetd/environments.
+      # - minimal/drop-miriway.sh
       - minimal/configure-greetd.sh
       # Last: reports X server packages and the package count (report-only
       # during the debug phase; see STRICT in the script).

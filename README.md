@@ -57,8 +57,9 @@ an explicit package list with weak dependencies off: greetd with a graphical gre
 the text greeter tuigreet if graphics fail), LXQt Wayland session on labwc, pcmanfm-qt,
 foot, swaylock/swayidle (locks after 5 minutes idle; "Lock screen" in the menu),
 NetworkManager (`nmtui` for Wi-Fi). No Xorg server; Xwayland is kept for now while the
-session is being debugged (see `files/scripts/minimal/`). Session log:
-`~/.local/state/bastion-session.log`. Updates: `sudo bootc upgrade`.
+session is being debugged (see `files/scripts/minimal/`). The greeter offers two sessions
+for now, LXQt on labwc and LXQt on miriway. Session logs:
+`~/.local/state/bastion-session-<compositor>.log`. Updates: `sudo bootc upgrade`.
 
 Every variant trusts all images under `ghcr.io/OWNER/` signed with the same key, so a
 machine can switch variants with `ostree-image-signed:` directly, no unverified hop.

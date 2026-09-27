@@ -1,6 +1,13 @@
 #!/bin/sh
-# Session started by greetd/tuigreet: LXQt on labwc, Wayland only.
-# There is no X server in this image; toolkits must not look for one.
+# Session started by the greeter: LXQt Wayland session on the given compositor.
+#   bastion-session labwc     (default)
+#   bastion-session miriway   (DEBUG PHASE: kept while labwc is being tested)
+COMPOSITOR=${1:-labwc}
+case "$COMPOSITOR" in
+    labwc|miriway) ;;
+    *) echo "bastion-session: unsupported compositor '$COMPOSITOR'" >&2; exit 1 ;;
+esac
+
 export XDG_SESSION_TYPE=wayland
 export QT_QPA_PLATFORM=wayland
 export GDK_BACKEND=wayland
@@ -9,13 +16,27 @@ export SDL_VIDEODRIVER=wayland
 unset DISPLAY
 
 # No GPU render node (e.g. a VM with QXL or virtio without 3D): use the
-# software renderer instead of failing on EGL.
+# software renderer instead of failing on EGL (wlroots compositors only).
 if ! ls /dev/dri/renderD* > /dev/null 2>&1; then
     export WLR_RENDERER=pixman
 fi
 
-# Keep the output of the last session for troubleshooting:
-#   ~/.local/state/bastion-session.log
+# startlxqtwayland takes the compositor from the first lxqt/session.conf with a
+# "compositor=" line, and the user's own file comes first. Write the choice
+# there so the greeter selection always wins.
+CONF_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/lxqt"
+CONF="$CONF_DIR/session.conf"
+mkdir -p "$CONF_DIR"
+if [ -f "$CONF" ] && grep -q '^compositor[[:space:]]*=' "$CONF"; then
+    sed -i "s|^compositor[[:space:]]*=.*|compositor=$COMPOSITOR|" "$CONF"
+elif [ -f "$CONF" ] && grep -q '^\[General\]' "$CONF"; then
+    sed -i "/^\[General\]/a compositor=$COMPOSITOR" "$CONF"
+else
+    printf '[General]\ncompositor=%s\n' "$COMPOSITOR" >> "$CONF"
+fi
+
+# Output of the last session per compositor, for troubleshooting:
+#   ~/.local/state/bastion-session-labwc.log, ...-miriway.log
 LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}"
 mkdir -p "$LOG_DIR"
-exec startlxqtwayland > "$LOG_DIR/bastion-session.log" 2>&1
+exec startlxqtwayland > "$LOG_DIR/bastion-session-$COMPOSITOR.log" 2>&1
