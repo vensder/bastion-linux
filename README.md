@@ -52,7 +52,7 @@ the gnome variant (shared in `recipes/shared/gnome-lockdown.yml`), far fewer pac
 the build log prints the package count. No file manager yet. Updates: `sudo bootc upgrade`.
 
 **Minimal (experimental, LXQt)** starts from `fedora-bootc`, which has no desktop, and adds
-an explicit package list with weak dependencies off: greetd with a graphical greeter
+an explicit package list (weak dependencies temporarily on while debugging): greetd with a graphical greeter
 (gtkgreet in the cage kiosk compositor, running as an unprivileged user; falls back to
 the text greeter tuigreet if graphics fail), LXQt Wayland session on labwc, pcmanfm-qt,
 foot, swaylock/swayidle (locks after 5 minutes idle; "Lock screen" in the menu),
@@ -63,6 +63,88 @@ session is being debugged (see `files/scripts/minimal/`). Session log:
 Every variant trusts all images under `ghcr.io/OWNER/` signed with the same key, so a
 machine can switch variants with `ostree-image-signed:` directly, no unverified hop.
 In the commands below, use the image name of the variant you want.
+
+## Security considerations
+
+### Which variant to use
+
+**Use the GNOME (Silverblue) variant for real funds.** Reasons:
+
+- **App isolation on screen.** GNOME's compositor does not give ordinary apps screen
+  capture, background clipboard access or keystroke injection; those go through portals
+  that ask you. wlroots compositors (labwc in the LXQt variant, Sway) offer these
+  protocols to every app, which is exactly what clipboard address-swapping and
+  screen-scraping malware need.
+- **Most tested base.** Fedora Silverblue is an official Fedora product built and tested
+  by Fedora; our layer on top is small. Security updates reach it quickly, and this is
+  the only variant rebuilt daily in CI.
+- **Fewer surprises.** The minimal variants use package sets nobody else runs. With weak
+  dependencies off, a piece that normally hardens or locks the session can be missing
+  without any error.
+
+A smaller package count is not by itself more secure. What matters is what runs, what is
+reachable from the network, how well apps are isolated from each other, and how fast
+security fixes arrive. On the GNOME variant most of the extra packages never run
+(services masked, nothing listening on the network).
+
+**GNOME minimal** keeps GNOME's isolation model with far fewer packages, but is
+experimental: use it for testing until it has been tried for a while.
+
+**LXQt minimal** is a research variant: wlroots protocol exposure (above), Xwayland
+currently installed, weak dependencies on, and one unmet RPM dependency by design
+(`drop-miriway.sh`). Do not use it for funds.
+
+### Do not
+
+- **Do not add Flatpak remotes** (Flathub, Fedora) or install Flatpaks. That adds a
+  second update channel outside the signed image, apps packaged by third parties, and
+  sandbox permissions you have to audit per app.
+- **Do not layer packages** (`rpm-ostree install`, `dnf`) or use Toolbox/Distrobox on
+  this machine. Layered packages bypass the image build; Toolbox and Distrobox share
+  your home folder, so anything run there can read the wallet (`~/.electrum`).
+- **Do not rebase with `ostree-unverified-registry:`** after setup, and do not edit
+  `/etc/containers/policy.json`. `rpm-ostree status` must always show
+  `ostree-image-signed:`.
+- **Do not weaken the defaults:** no `setenforce 0`, no unmasking services, no SSH
+  server, no remote desktop, no firewall changes.
+- **Do not run unknown code:** no `curl ... | sh`, no scripts from chats or forums,
+  no "wallet helper", clipboard manager, screenshot or AI tools, no games.
+- **Do not use the browser for anything but exchanges and block explorers:** no email,
+  no general browsing, no extensions beyond what LibreWolf ships. Start it only from the
+  app menu (the sandbox); `librewolf` from a terminal is not sandboxed.
+- **Do not type your seed phrase into any computer**, photograph it, or store it in a
+  password manager or cloud.
+- **Do not plug in unknown USB devices** or use install media you did not verify.
+- **Do not install someone else's images or ISOs** without verifying their signature;
+  better, build your own with your own key (see "Build your own").
+
+### Best practices
+
+- **Dedicated machine:** use it only for Bitcoin and exchanges.
+- **Encrypt the disk** (tick "Encrypt my data" in the installer) with a strong
+  passphrase, set a firmware (UEFI) password and keep Secure Boot on.
+- **Lock the screen** when away (Super+L on GNOME, "Lock screen" on LXQt).
+- **Update regularly:** `rpm-ostree upgrade` (GNOME) or `sudo bootc upgrade`
+  (bootc variants), then reboot. If an update misbehaves, `rpm-ostree rollback`.
+- **Check the state now and then:**
+  ```sh
+  rpm-ostree status                 # booted image is ostree-image-signed:
+  getenforce                        # Enforcing
+  firewall-cmd --get-default-zone   # drop
+  sudo ss -tulpn                    # only 127.0.0.x listeners
+  ```
+- **Wallet:** set a wallet password in Electrum; seed on paper or steel, stored
+  separately from the computer; test restoring from the seed once with a small amount.
+- **Addresses:** after copy-paste, compare the first and last characters and a few in
+  the middle; send a small test transaction to any new address.
+- **Exchanges:** use a FIDO2 security key for 2FA and enable the withdrawal address
+  allowlist; the disposable browser logs you out when closed.
+- **Backups:** Electrum wallet file (password-protected) on an offline USB drive,
+  attached only when needed.
+- **Larger amounts:** move them to a hardware wallet and keep only spending amounts here.
+- **Signing key (if you build your own):** keep `cosign.key` offline and never commit it
+  (it is in `.gitignore`); if it leaks, generate a new key, rebuild, and rebase your
+  machines.
 
 ## Repository layout and CI
 
@@ -278,7 +360,8 @@ and `lsblk -f` shows a `crypto_LUKS` partition if you chose encryption.
 - `/etc/containers/policy.json` in the image requires that signature for images under
   the owner's GHCR namespace and rejects images from every other registry path.
 - GitHub Actions are pinned by commit SHA; Dependabot proposes updates.
-- Daily rebuilds (for Fedora updates) are disabled while testing; see `schedule` in `build.yml`.
+- The GNOME variant is rebuilt daily (`schedule` in `build-gnome.yml`) to pick up Fedora
+  security updates; the experimental variants build on changes only.
 
 ## Wallet
 

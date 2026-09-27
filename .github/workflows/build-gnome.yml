@@ -38,9 +38,11 @@ on:
       - '!iso/**'
       - '!local-build/**'
       - '!.github/workflows/build-iso.yml'
-  # Disabled while testing. Re-enable for daily Fedora security updates.
-  # schedule:
-  #   - cron: "17 14 * * *"   # daily, ~03:17 NZ
+  # Daily rebuild so Fedora security updates reach installed machines
+  # (only this, the recommended variant). 14:17 UTC = ~03:17 NZ.
+  # Scheduled runs use the default branch and always build, sign and push.
+  schedule:
+    - cron: "17 14 * * *"
   workflow_dispatch:
 
 concurrency:
