@@ -35,6 +35,8 @@ modules:
         - lxqt-notificationd
         - lxqt-qtplugin
         - lxqt-themes
+        - lxqt-themes-fedora       # Fedora look for LXQt
+        - breeze-icon-theme        # icon theme LXQt on Fedora uses
         - pcmanfm-qt
         # Wayland-native tools: terminal, lock, idle
         - foot
