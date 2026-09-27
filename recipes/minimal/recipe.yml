@@ -11,11 +11,12 @@ base-image: quay.io/fedora/fedora-bootc
 image-version: 44
 
 modules:
-  # Every package added on top of fedora-bootc. Weak dependencies are off, so
-  # nothing arrives unless something here hard-requires it.
+  # Every package added on top of fedora-bootc.
+  # DEBUG PHASE: weak dependencies are ON so the session gets everything it may
+  # need. Once login works, set install-weak-deps back to false and strip.
   - type: dnf
     install:
-      install-weak-deps: false
+      install-weak-deps: true
       packages:
         # login: greetd runs the greeter as an unprivileged user
         - greetd
@@ -38,7 +39,16 @@ modules:
         - foot
         - swaylock
         - swayidle
+        # graphics: Mesa EGL/GL/GBM (the "EGL not initialized" error), Qt Wayland
+        # plugin and layer-shell for the LXQt panel, a cursor theme
         - mesa-dri-drivers
+        - mesa-libEGL
+        - mesa-libGL
+        - mesa-libgbm
+        - mesa-vulkan-drivers
+        - qt6-qtwayland
+        - layer-shell-qt
+        - adwaita-cursor-theme
         - dejavu-sans-fonts
         - dejavu-sans-mono-fonts
         # network (nmtui for Wi-Fi setup)

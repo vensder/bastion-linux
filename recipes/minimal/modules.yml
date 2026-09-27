@@ -10,10 +10,12 @@ modules:
 
   - type: script
     scripts:
-      # lxqt-wayland-session drags in miriway; we use labwc.
-      - minimal/drop-miriway.sh
+      # DEBUG PHASE: miriway kept as a second compositor to try. Re-enable to
+      # remove it (lxqt-wayland-session drags it in; we use labwc).
+      # - minimal/drop-miriway.sh
       - minimal/configure-greetd.sh
-      # Last: fails the build if an Xorg server got in; prints the package count.
+      # Last: reports X server packages and the package count (report-only
+      # during the debug phase; see STRICT in the script).
       - minimal/check-minimal.sh
 
   - type: systemd
