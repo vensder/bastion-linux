@@ -51,6 +51,15 @@ terminal, NetworkManager, fonts and icons. Same GNOME isolation model and lockdo
 the gnome variant (shared in `recipes/shared/gnome-lockdown.yml`), far fewer packages;
 the build log prints the package count. No file manager yet. Updates: `sudo bootc upgrade`.
 
+GNOME minimal also tests **confined SELinux users**: at boot,
+`bastion-confine-users.service` maps every login except root to `staff_u` (instead of
+`unconfined_u`) and turns off `staff_exec_content`/`user_exec_content`, so nothing saved
+in your home folder or `/tmp` can be executed; programs from the image (`/usr`) still run.
+`sudo` switches to the SELinux admin role (`/etc/sudoers.d/bastion-sysadm`). Check with
+`id -Z` (should start with `staff_u:staff_r`). Opt out:
+`sudo systemctl mask bastion-confine-users.service`, then
+`sudo semanage login -m -s unconfined_u -r s0-s0:c0.c1023 __default__`, log out and in.
+
 **Minimal (experimental, LXQt)** starts from `fedora-bootc`, which has no desktop, and adds
 an explicit package list (weak dependencies temporarily on while debugging): greetd with a graphical greeter
 (gtkgreet in the cage kiosk compositor, running as an unprivileged user; falls back to

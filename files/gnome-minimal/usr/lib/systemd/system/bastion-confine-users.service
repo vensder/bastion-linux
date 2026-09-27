@@ -1,0 +1,15 @@
+[Unit]
+Description=Bastion: confined SELinux users, no execution from home or /tmp
+Documentation=file:///usr/libexec/bastion/confine-users.sh
+ConditionSecurity=selinux
+After=local-fs.target
+# Apply before anyone can log in, so the first login is already confined.
+Before=systemd-user-sessions.service display-manager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/bastion/confine-users.sh
+
+[Install]
+WantedBy=multi-user.target

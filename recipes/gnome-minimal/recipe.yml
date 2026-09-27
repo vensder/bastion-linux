@@ -40,6 +40,8 @@ modules:
         - gnupg2
         - bubblewrap
         - xdg-user-dirs
+        - policycoreutils-python-utils   # semanage, for the confined-users service
+        - sudo                           # sudoers role rule (visudo check at build)
 
   - from-file: shared/common.yml
   - from-file: shared/librewolf.yml

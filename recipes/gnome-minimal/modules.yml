@@ -1,10 +1,22 @@
 ---
 # Boot setup for the gnome-minimal variant (gnome-minimal/recipe.yml).
 modules:
+  # Confined SELinux users (staff_u, no execution from home or /tmp):
+  # boot-time service + sudo role rule.
+  - type: files
+    files:
+      - source: gnome-minimal
+        destination: /
+
+  - type: script
+    scripts:
+      - gnome-minimal/confined-users.sh
+
   - type: systemd
     system:
       enabled:
         - gdm.service
+        - bastion-confine-users.service
 
   - type: script
     snippets:
