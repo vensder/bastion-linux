@@ -1,14 +1,19 @@
 [Unit]
-Description=Bastion: confined SELinux users, no execution from home or /tmp
+Description=Bastion: confined SELinux users (group bastion-confined), no execution from home or /tmp
 Documentation=file:///usr/libexec/bastion/confine-users.sh
 ConditionSecurity=selinux
-After=local-fs.target
-# Apply before anyone can log in, so the first login is already confined.
-Before=systemd-user-sessions.service display-manager.service
+After=local-fs.target systemd-sysusers.service
+# Deliberately not ordered before logins: the policy rebuild can take a while
+# and must never block the login screen or text consoles. The mapping takes
+# effect at the next login.
+# To skip it for one boot, add to the kernel command line (GRUB, press e):
+#   systemd.mask=bastion-confine-users.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+Nice=10
+TimeoutStartSec=15min
 ExecStart=/usr/libexec/bastion/confine-users.sh
 
 [Install]

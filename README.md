@@ -51,14 +51,16 @@ terminal, NetworkManager, fonts and icons. Same GNOME isolation model and lockdo
 the gnome variant (shared in `recipes/shared/gnome-lockdown.yml`), far fewer packages;
 the build log prints the package count. No file manager yet. Updates: `sudo bootc upgrade`.
 
-GNOME minimal also tests **confined SELinux users**: at boot,
-`bastion-confine-users.service` maps every login except root to `staff_u` (instead of
-`unconfined_u`) and turns off `staff_exec_content`/`user_exec_content`, so nothing saved
-in your home folder or `/tmp` can be executed; programs from the image (`/usr`) still run.
-`sudo` switches to the SELinux admin role (`/etc/sudoers.d/bastion-sysadm`). Check with
-`id -Z` (should start with `staff_u:staff_r`). Opt out:
-`sudo systemctl mask bastion-confine-users.service`, then
-`sudo semanage login -m -s unconfined_u -r s0-s0:c0.c1023 __default__`, log out and in.
+GNOME minimal also tests **confined SELinux users**. At boot,
+`bastion-confine-users.service` maps members of the group `bastion-confined` to the
+SELinux user `user_u` and turns off `user_exec_content`: such a user cannot use sudo and
+cannot execute anything saved in their home folder or `/tmp`; programs from the image
+(`/usr`) still run. Everyone else, including admins and system accounts such as GDM's
+login screen, keeps Fedora's default (`unconfined_u`). The intended setup: the admin
+account for updates and settings only, and a separate confined account for the wallet
+and browser:
+`sudo useradd -m -G bastion-confined wallet && sudo passwd wallet`.
+Check after logging in as `wallet`: `id -Z` shows `user_u:user_r:user_t:s0`.
 
 **Minimal (experimental, LXQt)** starts from `fedora-bootc`, which has no desktop, and adds
 an explicit package list (weak dependencies temporarily on while debugging): greetd with a graphical greeter

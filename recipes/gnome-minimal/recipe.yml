@@ -12,11 +12,12 @@ base-image: quay.io/fedora/fedora-bootc
 image-version: 44
 
 modules:
-  # Every package added on top of fedora-bootc. Weak dependencies are off, so
-  # nothing arrives unless something here hard-requires it.
+  # Every package added on top of fedora-bootc.
+  # DEBUG PHASE: weak dependencies are ON until GNOME boots to a working login;
+  # then set install-weak-deps back to false and strip.
   - type: dnf
     install:
-      install-weak-deps: false
+      install-weak-deps: true
       packages:
         # login and shell (GDM is needed for GNOME's lock screen)
         - gdm
@@ -29,7 +30,13 @@ modules:
         - adwaita-icon-theme
         - dejavu-sans-fonts
         - dejavu-sans-mono-fonts
+        # graphics: Mesa EGL/GL/GBM. Without mesa-libEGL the compositor cannot
+        # initialise EGL (same failure as the LXQt variant had).
         - mesa-dri-drivers
+        - mesa-libEGL
+        - mesa-libGL
+        - mesa-libgbm
+        - mesa-vulkan-drivers
         # network
         - NetworkManager
         - NetworkManager-wifi
@@ -41,7 +48,9 @@ modules:
         - bubblewrap
         - xdg-user-dirs
         - policycoreutils-python-utils   # semanage, for the confined-users service
-        - sudo                           # sudoers role rule (visudo check at build)
+        # DEBUG PHASE: VM guest agent for clipboard sharing with the host.
+        # Remove before real use: it lets the VM host read and set the clipboard.
+        - spice-vdagent
 
   - from-file: shared/common.yml
   - from-file: shared/librewolf.yml
