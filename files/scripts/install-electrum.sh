@@ -61,12 +61,15 @@ chmod 755 /usr/bin/electrum
 
 # Own desktop entry. Deliberately no bitcoin:/lightning: URI handler, so the
 # browser cannot launch the wallet with a pre-filled payment.
+# TESTING: the menu entry starts testnet4 (coins without value; wallets kept
+# apart in ~/.electrum/testnet4). Drop --testnet4 before real use. The
+# `electrum` command without options still starts mainnet.
 cat > /usr/share/applications/electrum.desktop <<'EOF'
 [Desktop Entry]
 Type=Application
-Name=Electrum
-Comment=Bitcoin wallet
-Exec=/usr/bin/electrum
+Name=Electrum (testnet4)
+Comment=Bitcoin wallet, test network
+Exec=/usr/bin/electrum --testnet4
 Icon=electrum
 Categories=Finance;Network;
 Terminal=false

@@ -38,11 +38,11 @@ on:
       - '!iso/**'
       - '!local-build/**'
       - '!.github/workflows/build-iso.yml'
-  # Daily rebuild so Fedora security updates reach installed machines
+  # Daily or weekly rebuild so Fedora security updates reach installed machines
   # (only this, the recommended variant). 14:17 UTC = ~03:17 NZ.
   # Scheduled runs use the default branch and always build, sign and push.
   schedule:
-    - cron: "17 14 * * *"
+    - cron: "17 14 * * 5"
   workflow_dispatch:
 
 concurrency:

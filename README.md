@@ -51,14 +51,22 @@ terminal, NetworkManager, fonts and icons. Same GNOME isolation model and lockdo
 the gnome variant (shared in `recipes/shared/gnome-lockdown.yml`), far fewer packages;
 the build log prints the package count. No file manager yet. Updates: `sudo bootc upgrade`.
 
-GNOME minimal also tests **confined SELinux users**: at boot,
-`bastion-confine-users.service` maps every login except root to `staff_u` (instead of
-`unconfined_u`) and turns off `staff_exec_content`/`user_exec_content`, so nothing saved
-in your home folder or `/tmp` can be executed; programs from the image (`/usr`) still run.
-`sudo` switches to the SELinux admin role (`/etc/sudoers.d/bastion-sysadm`). Check with
-`id -Z` (should start with `staff_u:staff_r`). Opt out:
-`sudo systemctl mask bastion-confine-users.service`, then
-`sudo semanage login -m -s unconfined_u -r s0-s0:c0.c1023 __default__`, log out and in.
+GNOME minimal also tests **confined SELinux users**. At boot,
+`bastion-confine-users.service` maps members of the group `bastion-confined` to the
+SELinux user `staff_u` and turns off `staff_exec_content`: such a user (not in `wheel`,
+so no sudo) cannot execute anything saved in their home folder or `/tmp`; programs from the image
+(`/usr`) still run. Everyone else, including admins and system accounts such as GDM's
+login screen, keeps Fedora's default (`unconfined_u`). The intended setup: the admin
+account for updates and settings only, and a separate confined account for the wallet
+and browser:
+`sudo useradd -m -G bastion-confined wallet && sudo passwd wallet`.
+Check after logging in as `wallet`: `id -Z` shows `staff_u:staff_r:staff_t:...`.
+Fedora's policy needs a few extra rules for a confined GNOME login; they are in
+`files/gnome-minimal/usr/share/selinux/bastion/bastion_staff.cil` (installed by the same
+service) and never include executing files from home.
+Limit: this blocks running downloaded programs directly (`./file`, including through the
+dynamic loader), but not a script handed to an interpreter from the image
+(`bash file.sh`, `python3 file.py`). Treat it as one layer, not a sandbox.
 
 **Minimal (experimental, LXQt)** starts from `fedora-bootc`, which has no desktop, and adds
 an explicit package list (weak dependencies temporarily on while debugging): greetd with a graphical greeter
@@ -381,6 +389,8 @@ Electrum is installed from the upstream AppImage at build time
   (`6694 D8DE 7BE8 EE56 31BE D950 2BD5 824B 7F94 70E6`), which is committed
   in `files/keys/`. The key is never fetched at build time.
 - Unpacked into `/usr/lib/electrum` (read-only, no FUSE), launched via `/usr/bin/electrum`.
+- **Testing phase:** the menu entry starts Electrum on **testnet4** (`--testnet4`, coins
+  without value). The `electrum` command without options still starts mainnet.
 - No `bitcoin:` URI handler, so the browser cannot open the wallet with a pre-filled payment.
 - Upgrade: bump `VERSION` in the script. The build log prints the AppImage sha256.
 
