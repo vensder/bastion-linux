@@ -20,6 +20,18 @@ fi
 sed -i "s#^command *=.*#${CMD}#" "$CONF"
 chmod 755 /usr/bin/bastion-session /usr/bin/bastion-greeter
 
+# The greeter user's home (/var/lib/greetd on Fedora) is not created on
+# image-based systems, because /var is not part of the image. Let
+# systemd-tmpfiles create it at boot so Mesa can keep its shader cache there.
+GREETER_USER=$(sed -n 's/^user *= *"\(.*\)"/\1/p' "$CONF" | head -n 1)
+GREETER_HOME=$(getent passwd "$GREETER_USER" | cut -d: -f6 || true)
+if [ -n "$GREETER_USER" ] && [ -n "$GREETER_HOME" ]; then
+    echo "d $GREETER_HOME 0750 $GREETER_USER $GREETER_USER -" > /usr/lib/tmpfiles.d/bastion-greetd.conf
+    echo "greeter home: $GREETER_HOME ($GREETER_USER)"
+else
+    echo "WARNING: greeter user/home not found (user='$GREETER_USER'); skipping tmpfiles entry" >&2
+fi
+
 # Boot to the graphical login.
 systemctl set-default graphical.target
 
