@@ -47,6 +47,8 @@ modules:
         - gnupg2
         - bubblewrap
         - xdg-user-dirs
+        # TESTING: password manager, to try alongside the wallet.
+        - keepassxc
         - policycoreutils-python-utils   # semanage, for the confined-users service
         # DEBUG PHASE: VM guest agent for clipboard sharing with the host.
         # Keep until testing gives solid results. Remove before real use: it

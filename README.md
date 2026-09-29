@@ -389,6 +389,8 @@ Electrum is installed from the upstream AppImage at build time
   (`6694 D8DE 7BE8 EE56 31BE D950 2BD5 824B 7F94 70E6`), which is committed
   in `files/keys/`. The key is never fetched at build time.
 - Unpacked into `/usr/lib/electrum` (read-only, no FUSE), launched via `/usr/bin/electrum`.
+- **Testing phase:** the menu entry starts Electrum on **testnet4** (`--testnet4`, coins
+  without value). The `electrum` command without options still starts mainnet.
 - No `bitcoin:` URI handler, so the browser cannot open the wallet with a pre-filled payment.
 - Upgrade: bump `VERSION` in the script. The build log prints the AppImage sha256.
 

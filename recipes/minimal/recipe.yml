@@ -66,6 +66,8 @@ modules:
         - gnupg2
         - bubblewrap
         - xdg-user-dirs
+        # TESTING: password manager, to try alongside the wallet.
+        - keepassxc
 
   - from-file: shared/common.yml
   - from-file: shared/librewolf.yml
