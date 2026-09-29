@@ -1,0 +1,17 @@
+; Bastion: extra rules so a confined staff_u user (staff_exec_content off)
+; can run a GNOME session. Collected with staff_t permissive, reviewed by hand.
+;
+; "map" without "execute": GNOME/dconf/Mesa map settings, cache and data files
+; read-only or shared. Executing files from home stays denied, because
+; executable mappings also need "execute", which is not granted here.
+(allow staff_t config_home_t (file (map)))
+(allow staff_t cache_home_t (file (map)))
+(allow staff_t data_home_t (file (map)))
+(allow staff_t gstreamer_home_t (file (map)))
+
+; /dev/udmabuf: buffer sharing used by gnome-shell and GStreamer.
+(allow staff_t dma_device_t (chr_file (ioctl open read write)))
+
+; Deliberately NOT included (audit2allow suggested it):
+;   allow staff_t user_home_t:file { execute execute_no_trans };
+; That is exactly what "no execution from home" is meant to block.

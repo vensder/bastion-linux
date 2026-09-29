@@ -49,7 +49,8 @@ modules:
         - xdg-user-dirs
         - policycoreutils-python-utils   # semanage, for the confined-users service
         # DEBUG PHASE: VM guest agent for clipboard sharing with the host.
-        # Remove before real use: it lets the VM host read and set the clipboard.
+        # Keep until testing gives solid results. Remove before real use: it
+        # lets the VM host read and set the clipboard.
         - spice-vdagent
 
   - from-file: shared/common.yml

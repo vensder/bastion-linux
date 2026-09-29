@@ -53,14 +53,20 @@ the build log prints the package count. No file manager yet. Updates: `sudo boot
 
 GNOME minimal also tests **confined SELinux users**. At boot,
 `bastion-confine-users.service` maps members of the group `bastion-confined` to the
-SELinux user `user_u` and turns off `user_exec_content`: such a user cannot use sudo and
-cannot execute anything saved in their home folder or `/tmp`; programs from the image
+SELinux user `staff_u` and turns off `staff_exec_content`: such a user (not in `wheel`,
+so no sudo) cannot execute anything saved in their home folder or `/tmp`; programs from the image
 (`/usr`) still run. Everyone else, including admins and system accounts such as GDM's
 login screen, keeps Fedora's default (`unconfined_u`). The intended setup: the admin
 account for updates and settings only, and a separate confined account for the wallet
 and browser:
 `sudo useradd -m -G bastion-confined wallet && sudo passwd wallet`.
-Check after logging in as `wallet`: `id -Z` shows `user_u:user_r:user_t:s0`.
+Check after logging in as `wallet`: `id -Z` shows `staff_u:staff_r:staff_t:...`.
+Fedora's policy needs a few extra rules for a confined GNOME login; they are in
+`files/gnome-minimal/usr/share/selinux/bastion/bastion_staff.cil` (installed by the same
+service) and never include executing files from home.
+Limit: this blocks running downloaded programs directly (`./file`, including through the
+dynamic loader), but not a script handed to an interpreter from the image
+(`bash file.sh`, `python3 file.py`). Treat it as one layer, not a sandbox.
 
 **Minimal (experimental, LXQt)** starts from `fedora-bootc`, which has no desktop, and adds
 an explicit package list (weak dependencies temporarily on while debugging): greetd with a graphical greeter
