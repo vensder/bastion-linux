@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: blue-build/github-action@c295af864f2802fc6aea227507af43d35823db81 # v1.13.0
+      - uses: blue-build/github-action@fb86c457fd3d0e13d5e9c1875c6305cf28b09234 # v1.14.0
         with:
           recipe: ${{ inputs.recipe }}
           push: false
@@ -33,7 +33,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: blue-build/github-action@c295af864f2802fc6aea227507af43d35823db81 # v1.13.0
+      - uses: blue-build/github-action@fb86c457fd3d0e13d5e9c1875c6305cf28b09234 # v1.14.0
         with:
           recipe: ${{ inputs.recipe }}
           cosign_private_key: ${{ secrets.COSIGN_PRIVATE_KEY }}
